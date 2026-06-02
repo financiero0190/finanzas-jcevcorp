@@ -1,0 +1,920 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>JCEVCORP · Control Financiero</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&family=Syne:wght@400;500;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<style>
+:root {
+  --bg: #0a0c0f;
+  --bg2: #0f1218;
+  --bg3: #151a22;
+  --bg4: #1c232e;
+  --border: rgba(255,255,255,0.07);
+  --border2: rgba(255,255,255,0.12);
+  --text: #e8eaf0;
+  --text2: #8a93a8;
+  --text3: #4a5568;
+  --accent: #4f9eff;
+  --accent2: #7b5ea7;
+  --green: #34d399;
+  --red: #f87171;
+  --yellow: #fbbf24;
+  --jcev: #6366f1;
+  --assm: #10b981;
+  --full: #f59e0b;
+  --radius: 12px;
+  --radius-sm: 8px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;font-size:14px;overflow:hidden}
+
+/* LAYOUT */
+.shell{display:flex;height:100vh;overflow:hidden}
+.sidebar{width:220px;min-width:220px;background:var(--bg2);border-right:1px solid var(--border);display:flex;flex-direction:column;padding:0;z-index:10}
+.main{flex:1;display:flex;flex-direction:column;overflow:hidden}
+.topbar{height:56px;min-height:56px;background:var(--bg2);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 24px;gap:16px;justify-content:space-between}
+.content{flex:1;overflow-y:auto;padding:24px;scroll-behavior:smooth}
+
+/* SIDEBAR */
+.sb-logo{padding:20px 20px 16px;border-bottom:1px solid var(--border)}
+.sb-logo-mark{font-family:'Syne',sans-serif;font-weight:800;font-size:16px;letter-spacing:-0.5px;color:#fff}
+.sb-logo-sub{font-size:10px;color:var(--text3);margin-top:2px;font-family:'DM Mono',monospace;letter-spacing:0.5px}
+.sb-nav{padding:12px 10px;flex:1}
+.sb-section{font-size:9px;font-family:'DM Mono',monospace;letter-spacing:1.5px;color:var(--text3);padding:8px 10px 4px;text-transform:uppercase}
+.nav-item{display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:var(--radius-sm);cursor:pointer;color:var(--text2);font-size:13px;transition:all .2s;margin-bottom:2px;border:none;background:none;width:100%;text-align:left}
+.nav-item svg{width:16px;height:16px;flex-shrink:0;opacity:.7}
+.nav-item:hover{background:var(--bg3);color:var(--text)}
+.nav-item.active{background:linear-gradient(135deg,rgba(79,158,255,.15),rgba(123,94,167,.1));color:#fff;font-weight:500}
+.nav-item.active svg{opacity:1}
+.nav-item .dot{width:6px;height:6px;border-radius:50%;background:var(--red);margin-left:auto;animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+.sb-bottom{padding:14px;border-top:1px solid var(--border)}
+.sb-date{font-family:'DM Mono',monospace;font-size:10px;color:var(--text3);text-align:center}
+
+/* TOPBAR */
+.tb-title{font-family:'Syne',sans-serif;font-weight:600;font-size:15px}
+.tb-right{display:flex;align-items:center;gap:12px}
+.tb-badge{background:rgba(248,113,113,.15);color:var(--red);font-size:11px;padding:4px 10px;border-radius:20px;font-family:'DM Mono',monospace;border:1px solid rgba(248,113,113,.2)}
+.tb-badge.warn{background:rgba(251,191,36,.1);color:var(--yellow);border-color:rgba(251,191,36,.2)}
+
+/* SECTIONS */
+.section{display:none;animation:fadeIn .3s ease}
+.section.active{display:block}
+@keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+
+/* METRIC CARDS */
+.kpi-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:14px;margin-bottom:24px}
+.kpi{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:18px 20px;position:relative;overflow:hidden;transition:border-color .2s}
+.kpi:hover{border-color:var(--border2)}
+.kpi::before{content:'';position:absolute;top:0;left:0;right:0;height:2px}
+.kpi.red::before{background:linear-gradient(90deg,var(--red),transparent)}
+.kpi.yellow::before{background:linear-gradient(90deg,var(--yellow),transparent)}
+.kpi.green::before{background:linear-gradient(90deg,var(--green),transparent)}
+.kpi.blue::before{background:linear-gradient(90deg,var(--accent),transparent)}
+.kpi.purple::before{background:linear-gradient(90deg,var(--accent2),transparent)}
+.kpi-label{font-size:11px;color:var(--text3);font-family:'DM Mono',monospace;letter-spacing:.5px;text-transform:uppercase;margin-bottom:10px}
+.kpi-value{font-family:'Syne',sans-serif;font-size:26px;font-weight:700;line-height:1;letter-spacing:-1px}
+.kpi-sub{font-size:11px;color:var(--text2);margin-top:6px}
+.kpi-icon{position:absolute;right:16px;top:16px;opacity:.08;font-size:36px}
+
+/* CARDS */
+.card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:20px;margin-bottom:16px}
+.card-title{font-family:'Syne',sans-serif;font-size:13px;font-weight:600;letter-spacing:.3px;margin-bottom:16px;color:var(--text2);text-transform:uppercase}
+.card-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+@media(max-width:900px){.card-grid{grid-template-columns:1fr}}
+
+/* ALERTS */
+.alert{display:flex;gap:12px;align-items:flex-start;padding:12px 16px;border-radius:var(--radius-sm);margin-bottom:10px;font-size:12.5px;line-height:1.5;border:1px solid}
+.alert-red{background:rgba(248,113,113,.07);border-color:rgba(248,113,113,.2);color:#fca5a5}
+.alert-yellow{background:rgba(251,191,36,.07);border-color:rgba(251,191,36,.2);color:#fde68a}
+.alert-green{background:rgba(52,211,153,.07);border-color:rgba(52,211,153,.2);color:#6ee7b7}
+.alert-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;margin-top:4px}
+.alert-red .alert-dot{background:var(--red)}
+.alert-yellow .alert-dot{background:var(--yellow)}
+.alert-green .alert-dot{background:var(--green)}
+
+/* TABLE */
+.table-wrap{overflow-x:auto;border-radius:var(--radius-sm);border:1px solid var(--border)}
+table{width:100%;border-collapse:collapse;font-size:12.5px}
+th{text-align:left;padding:10px 14px;font-family:'DM Mono',monospace;font-size:10px;letter-spacing:.8px;text-transform:uppercase;color:var(--text3);border-bottom:1px solid var(--border);background:var(--bg3);white-space:nowrap}
+td{padding:10px 14px;border-bottom:1px solid rgba(255,255,255,.04);white-space:nowrap}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:rgba(255,255,255,.02)}
+
+/* TAGS */
+.tag{display:inline-block;padding:3px 8px;border-radius:5px;font-size:10px;font-weight:600;font-family:'DM Mono',monospace;letter-spacing:.3px}
+.tag-j{background:rgba(99,102,241,.2);color:#a5b4fc;border:1px solid rgba(99,102,241,.3)}
+.tag-a{background:rgba(16,185,129,.15);color:#6ee7b7;border:1px solid rgba(16,185,129,.25)}
+.tag-f{background:rgba(245,158,11,.15);color:#fde68a;border:1px solid rgba(245,158,11,.25)}
+.pill{display:inline-block;padding:3px 9px;border-radius:20px;font-size:10px;font-weight:500;font-family:'DM Mono',monospace}
+.pill-red{background:rgba(248,113,113,.15);color:#fca5a5;border:1px solid rgba(248,113,113,.2)}
+.pill-yellow{background:rgba(251,191,36,.12);color:#fde68a;border:1px solid rgba(251,191,36,.2)}
+.pill-green{background:rgba(52,211,153,.12);color:#6ee7b7;border:1px solid rgba(52,211,153,.2)}
+.pill-gray{background:rgba(255,255,255,.06);color:var(--text3);border:1px solid var(--border)}
+.pill-blue{background:rgba(79,158,255,.12);color:#93c5fd;border:1px solid rgba(79,158,255,.2)}
+
+/* FILTERS */
+.filters{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px;align-items:center}
+.filters select,.filters input{background:var(--bg3);border:1px solid var(--border);color:var(--text);font-size:12px;padding:6px 12px;border-radius:var(--radius-sm);font-family:'DM Sans',sans-serif;height:34px;outline:none;transition:border-color .2s}
+.filters select:focus,.filters input:focus{border-color:var(--accent)}
+.filter-label{font-size:11px;color:var(--text3);font-family:'DM Mono',monospace}
+
+/* AMORT ACCORDION */
+.amort-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);margin-bottom:12px;overflow:hidden;transition:border-color .2s}
+.amort-card:hover{border-color:var(--border2)}
+.amort-header{display:flex;justify-content:space-between;align-items:center;padding:16px 20px;cursor:pointer;user-select:none}
+.amort-header:hover{background:rgba(255,255,255,.02)}
+.amort-body{display:none;border-top:1px solid var(--border)}
+.amort-body.open{display:block}
+.amort-progress{height:3px;background:var(--bg4);margin:0 20px 16px}
+.amort-progress-fill{height:100%;background:linear-gradient(90deg,var(--accent),var(--accent2));border-radius:2px;transition:width .6s ease}
+.chevron{transition:transform .3s;color:var(--text3)}
+.chevron.open{transform:rotate(180deg)}
+
+/* CALENDAR */
+.cal-month{margin-bottom:20px}
+.cal-month-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;padding-bottom:10px;border-bottom:1px solid var(--border)}
+.cal-month-name{font-family:'Syne',sans-serif;font-size:16px;font-weight:600}
+.cal-month-total{font-family:'DM Mono',monospace;font-size:13px;color:var(--accent)}
+.cal-row{display:flex;gap:10px;align-items:stretch;margin-bottom:8px;background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-sm);overflow:hidden;transition:border-color .2s}
+.cal-row:hover{border-color:var(--border2)}
+.cal-date-box{min-width:64px;background:var(--bg3);padding:12px 10px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;border-right:1px solid var(--border)}
+.cal-day{font-family:'Syne',sans-serif;font-size:20px;font-weight:700;line-height:1}
+.cal-wday{font-size:9px;font-family:'DM Mono',monospace;color:var(--text3);letter-spacing:.5px;text-transform:uppercase}
+.cal-row-body{flex:1;padding:12px 14px;display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.cal-row-amount{font-family:'Syne',sans-serif;font-size:15px;font-weight:700;margin-left:auto;color:#fff;white-space:nowrap}
+.cal-row-cap{font-size:10px;color:var(--text3);font-family:'DM Mono',monospace;white-space:nowrap}
+.urgency-bar{width:3px;align-self:stretch;flex-shrink:0}
+.ub-red{background:var(--red)}
+.ub-yellow{background:var(--yellow)}
+.ub-green{background:var(--green)}
+.ub-gray{background:var(--bg4)}
+
+/* GARANTIAS CARDS */
+.gar-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:14px}
+.gar-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:16px 18px;transition:all .2s;position:relative;overflow:hidden}
+.gar-card:hover{border-color:var(--border2);transform:translateY(-2px)}
+.gar-card::after{content:'';position:absolute;bottom:0;left:0;right:0;height:2px}
+.gar-red::after{background:var(--red)}
+.gar-yellow::after{background:var(--yellow)}
+.gar-green::after{background:var(--green)}
+.gar-gray::after{background:var(--bg4)}
+.gar-bank{font-size:10px;font-family:'DM Mono',monospace;letter-spacing:.8px;color:var(--text3);text-transform:uppercase;margin-bottom:6px}
+.gar-tipo{font-size:13px;font-weight:500;margin-bottom:4px}
+.gar-prop{font-size:11px;color:var(--text2);margin-bottom:12px}
+.gar-amount{font-family:'Syne',sans-serif;font-size:20px;font-weight:700;margin-bottom:8px;letter-spacing:-.5px}
+.gar-footer{display:flex;justify-content:space-between;align-items:center}
+.gar-venc{font-size:11px;color:var(--text2);font-family:'DM Mono',monospace}
+
+/* AI */
+.ai-wrap{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden}
+.ai-header{padding:16px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px}
+.ai-title{font-family:'Syne',sans-serif;font-weight:600;font-size:14px}
+.ai-live{width:8px;height:8px;border-radius:50%;background:var(--green);animation:pulse 2s infinite}
+.ai-body{padding:20px}
+.ai-input-wrap{display:flex;gap:10px;margin-bottom:16px}
+.ai-input{flex:1;background:var(--bg3);border:1px solid var(--border);color:var(--text);font-size:13px;padding:10px 16px;border-radius:var(--radius-sm);font-family:'DM Sans',sans-serif;outline:none;transition:border-color .2s}
+.ai-input:focus{border-color:var(--accent)}
+.ai-send{background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;border:none;padding:10px 20px;border-radius:var(--radius-sm);font-size:13px;font-weight:500;cursor:pointer;white-space:nowrap;transition:opacity .2s;font-family:'DM Sans',sans-serif}
+.ai-send:hover{opacity:.85}
+.ai-send:active{opacity:.7}
+.ai-response{min-height:80px;font-size:13px;line-height:1.7;color:var(--text2);background:var(--bg3);border-radius:var(--radius-sm);padding:14px 16px}
+.ai-quick{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+.ai-quick-btn{background:var(--bg3);border:1px solid var(--border);color:var(--text2);font-size:11px;padding:6px 12px;border-radius:20px;cursor:pointer;transition:all .2s;font-family:'DM Sans',sans-serif}
+.ai-quick-btn:hover{border-color:var(--accent);color:var(--accent)}
+.ld{display:inline-flex;gap:4px;align-items:center}
+.ld span{width:6px;height:6px;border-radius:50%;background:var(--accent);animation:bl 1.2s infinite}
+.ld span:nth-child(2){animation-delay:.2s}
+.ld span:nth-child(3){animation-delay:.4s}
+@keyframes bl{0%,80%,100%{opacity:.2}40%{opacity:1}}
+
+/* CHART CONTAINER */
+.chart-box{position:relative;height:220px;width:100%}
+.chart-legend{display:flex;flex-wrap:wrap;gap:10px;margin-top:12px}
+.legend-item{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--text2);font-family:'DM Mono',monospace}
+.legend-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+
+/* SCROLLBAR */
+::-webkit-scrollbar{width:4px;height:4px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--bg4);border-radius:2px}
+::-webkit-scrollbar-thumb:hover{background:var(--text3)}
+
+/* TOTALS ROW */
+.total-row{display:flex;gap:16px;padding:12px 14px;background:var(--bg3);border-radius:var(--radius-sm);font-family:'DM Mono',monospace;font-size:11px;color:var(--text2);margin-top:10px}
+.total-row strong{color:var(--text)}
+
+/* SECTION HEADER */
+.sec-hdr{display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:20px}
+.sec-hdr-title{font-family:'Syne',sans-serif;font-size:20px;font-weight:700;letter-spacing:-.5px}
+.sec-hdr-sub{font-size:12px;color:var(--text3);font-family:'DM Mono',monospace;margin-top:3px}
+</style>
+</head>
+<body>
+
+<div class="shell">
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="sb-logo">
+      <div class="sb-logo-mark">JCEVCORP</div>
+      <div class="sb-logo-sub">CONTROL FINANCIERO 2026</div>
+    </div>
+    <nav class="sb-nav">
+      <div class="sb-section">Principal</div>
+      <button class="nav-item active" onclick="nav('resumen')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+        Resumen
+        <span class="dot" id="dot-alert"></span>
+      </button>
+      <button class="nav-item" onclick="nav('obligaciones')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M9 12h6M9 16h6M17 21H7a2 2 0 01-2-2V5a2 2 0 012-2h7l5 5v11a2 2 0 01-2 2z"/></svg>
+        Obligaciones
+      </button>
+      <button class="nav-item" onclick="nav('amortizacion')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+        Amortización TA
+      </button>
+      <div class="sb-section">Control</div>
+      <button class="nav-item" onclick="nav('garantias')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+        Garantías
+      </button>
+      <button class="nav-item" onclick="nav('calendario')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+        Calendario
+      </button>
+      <div class="sb-section">Herramientas</div>
+      <button class="nav-item" onclick="nav('ia')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg>
+        Asistente IA
+      </button>
+    </nav>
+    <div class="sb-bottom">
+      <div class="sb-date" id="sb-today"></div>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <div class="main">
+    <!-- TOPBAR -->
+    <div class="topbar">
+      <span class="tb-title" id="tb-title">Panel Ejecutivo</span>
+      <div class="tb-right">
+        <span class="tb-badge warn" id="tb-warn">⚠ 3 vencen en 90d</span>
+        <span class="tb-badge" id="tb-urgent"></span>
+      </div>
+    </div>
+
+    <!-- CONTENT -->
+    <div class="content">
+
+      <!-- ═══ RESUMEN ═══ -->
+      <div id="sec-resumen" class="section active">
+        <div class="kpi-grid">
+          <div class="kpi blue">
+            <div class="kpi-label">Capital Pendiente</div>
+            <div class="kpi-value">$10.05<span style="font-size:16px">M</span></div>
+            <div class="kpi-sub">19 obligaciones activas</div>
+          </div>
+          <div class="kpi red">
+            <div class="kpi-label">Vence ≤ 30 días</div>
+            <div class="kpi-value" id="k30v" style="color:var(--red)">—</div>
+            <div class="kpi-sub" id="k30s"></div>
+          </div>
+          <div class="kpi yellow">
+            <div class="kpi-label">Vence ≤ 90 días</div>
+            <div class="kpi-value" id="k90v" style="color:var(--yellow)">—</div>
+            <div class="kpi-sub" id="k90s"></div>
+          </div>
+          <div class="kpi green">
+            <div class="kpi-label">Garantías Vigentes</div>
+            <div class="kpi-value" style="color:var(--green)">14</div>
+            <div class="kpi-sub">$13.3M valor total</div>
+          </div>
+          <div class="kpi purple">
+            <div class="kpi-label">Cuotas TA Pendientes</div>
+            <div class="kpi-value" id="kTA">—</div>
+            <div class="kpi-sub">3 créditos con tabla</div>
+          </div>
+        </div>
+
+        <div id="alertas-div" style="margin-bottom:16px"></div>
+
+        <div class="card-grid">
+          <div class="card">
+            <div class="card-title">Capital por empresa</div>
+            <div class="chart-box"><canvas id="ch-emp"></canvas></div>
+            <div class="chart-legend" id="leg-emp"></div>
+          </div>
+          <div class="card">
+            <div class="card-title">Vencimientos por mes — Capital (USD)</div>
+            <div class="chart-box"><canvas id="ch-mes"></canvas></div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-title">Distribución por banco — Solo pendientes</div>
+          <div class="chart-box" style="height:170px"><canvas id="ch-ban"></canvas></div>
+        </div>
+      </div>
+
+      <!-- ═══ OBLIGACIONES ═══ -->
+      <div id="sec-obligaciones" class="section">
+        <div class="sec-hdr">
+          <div>
+            <div class="sec-hdr-title">Obligaciones Financieras</div>
+            <div class="sec-hdr-sub">Hoja: OBLIGACIONES FINANCIERAS · Solo PENDIENTES</div>
+          </div>
+        </div>
+        <div class="filters">
+          <span class="filter-label">Empresa</span>
+          <select id="fEmp" onchange="renderObl()">
+            <option value="">Todas</option>
+            <option>JCEVCORP</option><option>ASSEMBLY</option><option>FULLMOTOS</option>
+          </select>
+          <span class="filter-label">Banco</span>
+          <select id="fBan" onchange="renderObl()">
+            <option value="">Todos</option>
+            <option>PRODUBANCO</option><option>PICHINCHA PANAMA</option><option>EBNA BANK</option>
+            <option>ST GEORGES</option><option>BOLIVARIANO</option><option>PAPEL COMERCIAL</option>
+          </select>
+          <span class="filter-label">Tipo</span>
+          <select id="fTipo" onchange="renderObl()">
+            <option value="">Todos</option>
+            <option value="TA">Solo TA</option>
+            <option value="FIJA">Solo pago único</option>
+          </select>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Empresa</th><th>Banco</th><th>Capital</th>
+                <th>Interés</th><th>Total</th><th>Tasa</th>
+                <th>Fecha vcto</th><th>Días</th><th>Tipo cuota</th>
+              </tr>
+            </thead>
+            <tbody id="tb-obl"></tbody>
+          </table>
+        </div>
+        <div class="total-row" id="tot-obl"></div>
+      </div>
+
+      <!-- ═══ AMORTIZACIÓN ═══ -->
+      <div id="sec-amortizacion" class="section">
+        <div class="sec-hdr">
+          <div>
+            <div class="sec-hdr-title">Tablas de Amortización</div>
+            <div class="sec-hdr-sub">3 créditos PRODUBANCO con cuotas mensuales · Click para expandir</div>
+          </div>
+        </div>
+
+        <!-- TA1: JCEVCORP -->
+        <div class="amort-card">
+          <div class="amort-header" onclick="toggleTA('ta1','ic1')">
+            <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+              <span class="tag tag-j">JCEVCORP</span>
+              <span style="font-family:'Syne',sans-serif;font-weight:600;font-size:15px">PRODUBANCO</span>
+              <span style="font-family:'DM Mono',monospace;font-size:13px;color:var(--accent)">$1,000,000</span>
+              <span class="pill pill-blue">6.00% anual</span>
+            </div>
+            <div style="display:flex;align-items:center;gap:12px">
+              <span style="font-family:'DM Mono',monospace;font-size:11px;color:var(--text3)">12 cuotas · $86,170/mes · Vcto: 16 ene 2026</span>
+              <svg class="chevron" id="ic1" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+            </div>
+          </div>
+          <div class="amort-body" id="ta1">
+            <div style="padding:16px 20px 0">
+              <div style="display:flex;justify-content:space-between;font-family:'DM Mono',monospace;font-size:11px;color:var(--text3);margin-bottom:6px">
+                <span>Progreso del crédito</span><span id="ta1-prog-label"></span>
+              </div>
+              <div class="amort-progress"><div class="amort-progress-fill" id="ta1-prog"></div></div>
+            </div>
+            <div class="table-wrap" style="margin:0 20px 20px;border-radius:8px">
+              <table><thead><tr><th>Fecha de pago</th><th>Capital</th><th>Interés</th><th>Cuota total</th><th>Estado</th></tr></thead>
+              <tbody id="ta1body"></tbody></table>
+            </div>
+          </div>
+        </div>
+
+        <!-- TA2: FULLMOTOS -->
+        <div class="amort-card">
+          <div class="amort-header" onclick="toggleTA('ta2','ic2')">
+            <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+              <span class="tag tag-f">FULLMOTOS</span>
+              <span style="font-family:'Syne',sans-serif;font-weight:600;font-size:15px">PRODUBANCO</span>
+              <span style="font-family:'DM Mono',monospace;font-size:13px;color:var(--full)">$500,000</span>
+              <span class="pill pill-blue">6.25% anual</span>
+            </div>
+            <div style="display:flex;align-items:center;gap:12px">
+              <span style="font-family:'DM Mono',monospace;font-size:11px;color:var(--text3)">12 cuotas · $43,137/mes · Vcto: 5 ago 2027</span>
+              <svg class="chevron" id="ic2" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+            </div>
+          </div>
+          <div class="amort-body" id="ta2">
+            <div style="padding:16px 20px 0">
+              <div style="display:flex;justify-content:space-between;font-family:'DM Mono',monospace;font-size:11px;color:var(--text3);margin-bottom:6px">
+                <span>Progreso del crédito</span><span id="ta2-prog-label"></span>
+              </div>
+              <div class="amort-progress"><div class="amort-progress-fill" id="ta2-prog" style="background:linear-gradient(90deg,var(--full),#f97316)"></div></div>
+            </div>
+            <div class="table-wrap" style="margin:0 20px 20px;border-radius:8px">
+              <table><thead><tr><th>Fecha de pago</th><th>Capital</th><th>Interés</th><th>Cuota total</th><th>Estado</th></tr></thead>
+              <tbody id="ta2body"></tbody></table>
+            </div>
+          </div>
+        </div>
+
+        <!-- TA3: ASSEMBLY -->
+        <div class="amort-card">
+          <div class="amort-header" onclick="toggleTA('ta3','ic3')">
+            <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+              <span class="tag tag-a">ASSEMBLY</span>
+              <span style="font-family:'Syne',sans-serif;font-weight:600;font-size:15px">PRODUBANCO</span>
+              <span style="font-family:'DM Mono',monospace;font-size:13px;color:var(--assm)">$100,000</span>
+              <span class="pill pill-blue">6.25% anual</span>
+            </div>
+            <div style="display:flex;align-items:center;gap:12px">
+              <span style="font-family:'DM Mono',monospace;font-size:11px;color:var(--text3)">12 cuotas · $8,624/mes · Vcto: 29 ago 2027</span>
+              <svg class="chevron" id="ic3" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+            </div>
+          </div>
+          <div class="amort-body" id="ta3">
+            <div style="padding:16px 20px 0">
+              <div style="display:flex;justify-content:space-between;font-family:'DM Mono',monospace;font-size:11px;color:var(--text3);margin-bottom:6px">
+                <span>Progreso del crédito</span><span id="ta3-prog-label"></span>
+              </div>
+              <div class="amort-progress"><div class="amort-progress-fill" id="ta3-prog" style="background:linear-gradient(90deg,var(--assm),#34d399)"></div></div>
+            </div>
+            <div class="table-wrap" style="margin:0 20px 20px;border-radius:8px">
+              <table><thead><tr><th>Fecha de pago</th><th>Capital</th><th>Interés</th><th>Cuota total</th><th>Estado</th></tr></thead>
+              <tbody id="ta3body"></tbody></table>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ═══ GARANTÍAS ═══ -->
+      <div id="sec-garantias" class="section">
+        <div class="sec-hdr">
+          <div>
+            <div class="sec-hdr-title">Garantías Bancarias</div>
+            <div class="sec-hdr-sub">14 garantías vigentes · $13,255,520 valor total</div>
+          </div>
+        </div>
+        <div class="kpi-grid" style="margin-bottom:20px">
+          <div class="kpi green"><div class="kpi-label">Total garantías</div><div class="kpi-value" style="color:var(--green)">14</div><div class="kpi-sub">todas vigentes</div></div>
+          <div class="kpi blue"><div class="kpi-label">Valor total</div><div class="kpi-value" style="font-size:22px">$13.26M</div></div>
+          <div class="kpi red"><div class="kpi-label">Vencen ≤ 90d</div><div class="kpi-value" style="color:var(--red)" id="gar-90">—</div><div class="kpi-sub">renovar urgente</div></div>
+          <div class="kpi yellow"><div class="kpi-label">Vencen en 2026</div><div class="kpi-value" style="color:var(--yellow)">3</div><div class="kpi-sub">Produbanco · 31 dic 2026</div></div>
+        </div>
+        <div class="gar-grid" id="gar-grid"></div>
+      </div>
+
+      <!-- ═══ CALENDARIO ═══ -->
+      <div id="sec-calendario" class="section">
+        <div class="sec-hdr">
+          <div>
+            <div class="sec-hdr-title">Calendario de Pagos</div>
+            <div class="sec-hdr-sub">Fechas exactas · Incluye cuotas TA y pagos únicos · Solo PENDIENTES</div>
+          </div>
+        </div>
+        <div id="cal-div"></div>
+      </div>
+
+      <!-- ═══ IA ═══ -->
+      <div id="sec-ia" class="section">
+        <div class="sec-hdr">
+          <div>
+            <div class="sec-hdr-title">Asistente Financiero IA</div>
+            <div class="sec-hdr-sub">Consulta en lenguaje natural sobre el portafolio del Grupo JCEVCORP</div>
+          </div>
+        </div>
+        <div class="ai-wrap">
+          <div class="ai-header">
+            <div class="ai-live"></div>
+            <span class="ai-title">Analista JCEVCORP · Claude Sonnet</span>
+          </div>
+          <div class="ai-body">
+            <div class="ai-input-wrap">
+              <input class="ai-input" id="ai-in" type="text" placeholder="Ej: ¿Cuánto debo pagar en julio sumando todas las empresas?" onkeydown="if(event.key==='Enter')askAI()"/>
+              <button class="ai-send" onclick="askAI()">Consultar →</button>
+            </div>
+            <div class="ai-response" id="ai-resp">
+              <span style="color:var(--text3);font-family:'DM Mono',monospace;font-size:12px">El asistente analizará el portafolio completo y responderá en segundos...</span>
+            </div>
+            <div class="ai-quick">
+              <button class="ai-quick-btn" onclick="qk('¿Cuál es el total de capital pendiente por empresa?')">Deuda por empresa</button>
+              <button class="ai-quick-btn" onclick="qk('¿Qué garantías vencen pronto y debo renovar con urgencia?')">Garantías urgentes</button>
+              <button class="ai-quick-btn" onclick="qk('¿Cuánto pago en cuotas TA el próximo mes?')">Cuotas TA próximas</button>
+              <button class="ai-quick-btn" onclick="qk('Dame un resumen ejecutivo de los riesgos financieros del grupo')">Resumen ejecutivo</button>
+              <button class="ai-quick-btn" onclick="qk('¿Qué créditos tienen la tasa más alta?')">Tasas más altas</button>
+              <button class="ai-quick-btn" onclick="qk('¿Cuál es el mes con mayor carga de pagos?')">Mes más crítico</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /content -->
+  </div><!-- /main -->
+</div><!-- /shell -->
+
+<script>
+const HOY = new Date();
+
+function xlD(n){const d=new Date((n-25569)*86400000);d.setMinutes(d.getMinutes()+d.getTimezoneOffset());return d;}
+function fD(d,short){if(!d)return '—';return d.toLocaleDateString('es-EC',short?{day:'2-digit',month:'short',year:'numeric'}:{weekday:'short',day:'2-digit',month:'short',year:'numeric'});}
+function dias(d){if(!d)return null;return Math.round((d-HOY)/86400000);}
+function fUSD(n,compact){if(compact&&Math.abs(n)>=1000000)return '$'+(n/1000000).toFixed(2)+'M';if(compact&&Math.abs(n)>=1000)return '$'+(n/1000).toFixed(0)+'K';return '$'+Math.round(n).toLocaleString('es-EC');}
+function fPct(n){return (n*100).toFixed(2)+'%';}
+
+const oblRaw=[
+  {emp:'JCEVCORP',ban:'PRODUBANCO',    xlv:46134,cap:1000000,int:34044.31,tot:1034044.31,tasa:0.06,  tipo:'TA'},
+  {emp:'ASSEMBLY', ban:'PICHINCHA PANAMA',xlv:46184,cap:490000, int:15680,  tot:505680,   tasa:0.06,  tipo:'UNICO'},
+  {emp:'JCEVCORP',ban:'PICHINCHA PANAMA',xlv:46195,cap:478000, int:8205.67,tot:486205.67, tasa:0.06,  tipo:'UNICO'},
+  {emp:'ASSEMBLY', ban:'EBNA BANK',    xlv:46195,cap:180000, int:5320,   tot:185320,    tasa:0.056, tipo:'UNICO'},
+  {emp:'ASSEMBLY', ban:'PICHINCHA PANAMA',xlv:46197,cap:387500, int:6781.25,tot:394281.25, tasa:0.06,  tipo:'UNICO'},
+  {emp:'ASSEMBLY', ban:'EBNA BANK',    xlv:46202,cap:314605, int:9787.73,tot:324392.73, tasa:0.07,  tipo:'UNICO'},
+  {emp:'ASSEMBLY', ban:'EBNA BANK',    xlv:46204,cap:556000, int:18487,  tot:574487,    tasa:0.057, tipo:'UNICO'},
+  {emp:'ASSEMBLY', ban:'EBNA BANK',    xlv:46211,cap:358494, int:10595,  tot:369089,    tasa:0.056, tipo:'UNICO'},
+  {emp:'ASSEMBLY', ban:'PICHINCHA PANAMA',xlv:46254,cap:87500,  int:1341.67,tot:88841.67, tasa:0.06,  tipo:'UNICO'},
+  {emp:'JCEVCORP',ban:'ST GEORGES',   xlv:46293,cap:700000, int:55304.86,tot:755304.86,tasa:0.0775,tipo:'UNICO'},
+  {emp:'ASSEMBLY', ban:'EBNA BANK',    xlv:46295,cap:180000, int:5320,   tot:185320,    tasa:0.056, tipo:'UNICO'},
+  {emp:'JCEVCORP',ban:'BOLIVARIANO',  xlv:46300,cap:521636, int:15865.8, tot:537502,    tasa:0.06,  tipo:'UNICO'},
+  {emp:'JCEVCORP',ban:'EBNA BANK',    xlv:46331,cap:200000, int:20000,  tot:220000,    tasa:0.056, tipo:'UNICO'},
+  {emp:'JCEVCORP',ban:'PAPEL COMERCIAL',xlv:46398,cap:750000, int:41250,  tot:791250,    tasa:0.055, tipo:'UNICO'},
+  {emp:'JCEVCORP',ban:'PAPEL COMERCIAL',xlv:46406,cap:500000, int:27500,  tot:527500,    tasa:0.055, tipo:'UNICO'},
+  {emp:'JCEVCORP',ban:'PAPEL COMERCIAL',xlv:46408,cap:750000, int:41250,  tot:791250,    tasa:0.055, tipo:'UNICO'},
+  {emp:'JCEVCORP',ban:'PAPEL COMERCIAL',xlv:46412,cap:2000000,int:110000, tot:2110000,   tasa:0.055, tipo:'UNICO'},
+  {emp:'FULLMOTOS',ban:'PRODUBANCO',   xlv:46517,cap:500000, int:17644.02,tot:517644,   tasa:0.0625,tipo:'TA'},
+  {emp:'ASSEMBLY', ban:'PRODUBANCO',   xlv:46543,cap:100000, int:3496.05, tot:103496,    tasa:0.0625,tipo:'TA'}
+].map(r=>({...r,vd:xlD(r.xlv)}));
+
+const ta1=[
+  {xl:46164,cap:81216.19,int:4954.17,cuota:86170.36,est:'CANCELADO'},
+  {xl:46195,cap:81304.63,int:4865.73,cuota:86170.36,est:'PENDIENTE'},
+  {xl:46225,cap:81878.28,int:4292.08,cuota:86170.36,est:'PENDIENTE'},
+  {xl:46256,cap:81910.66,int:4259.70,cuota:86170.36,est:'PENDIENTE'},
+  {xl:46287,cap:82832.79,int:3337.57,cuota:86170.36,est:'PENDIENTE'},
+  {xl:46317,cap:83142.22,int:3028.14,cuota:86170.36,est:'PENDIENTE'},
+  {xl:46348,cap:83394.85,int:2775.51,cuota:86170.36,est:'PENDIENTE'},
+  {xl:46378,cap:84068.21,int:2102.15,cuota:86170.36,est:'PENDIENTE'},
+  {xl:46409,cap:84368.44,int:1801.92,cuota:86170.36,est:'PENDIENTE'},
+  {xl:46440,cap:84815.24,int:1355.12,cuota:86170.36,est:'PENDIENTE'},
+  {xl:46468,cap:85352.08,int:818.28, cuota:86170.36,est:'PENDIENTE'},
+  {xl:46499,cap:85716.41,int:453.94, cuota:86170.35,est:'PENDIENTE'}
+].map(r=>({...r,d:xlD(r.xl)}));
+
+const ta2=[
+  {xl:46181,cap:40272.42,int:2864.58,cuota:43137,est:'PENDIENTE'},
+  {xl:46209,cap:40742.59,int:2394.41,cuota:43137,est:'PENDIENTE'},
+  {xl:46245,cap:40663.82,int:2473.18,cuota:43137,est:'PENDIENTE'},
+  {xl:46273,cap:41297.94,int:1839.06,cuota:43137,est:'PENDIENTE'},
+  {xl:46303,cap:41381.67,int:1755.33,cuota:43137,est:'PENDIENTE'},
+  {xl:46335,cap:41494.55,int:1642.45,cuota:43137,est:'PENDIENTE'},
+  {xl:46364,cap:41857.44,int:1279.56,cuota:43137,est:'PENDIENTE'},
+  {xl:46395,cap:41994.47,int:1142.53,cuota:43137,est:'PENDIENTE'},
+  {xl:46428,cap:42161.35,int:975.65, cuota:43137,est:'PENDIENTE'},
+  {xl:46454,cap:42558.62,int:578.38, cuota:43137,est:'PENDIENTE'},
+  {xl:46485,cap:42676.44,int:460.56, cuota:43137,est:'PENDIENTE'},
+  {xl:46517,cap:42898.69,int:238.33, cuota:43137.02,est:'PENDIENTE'}
+].map(r=>({...r,d:xlD(r.xl)}));
+
+const ta3=[
+  {xl:46181,cap:8051.75,int:572.92,cuota:8624.67,est:'PENDIENTE'},
+  {xl:46209,cap:8177.70,int:446.97,cuota:8624.67,est:'PENDIENTE'},
+  {xl:46240,cap:8173.82,int:450.85,cuota:8624.67,est:'PENDIENTE'},
+  {xl:46272,cap:8204.69,int:419.98,cuota:8624.67,est:'PENDIENTE'},
+  {xl:46301,cap:8285.37,int:339.30,cuota:8624.67,est:'PENDIENTE'},
+  {xl:46332,cap:8306.56,int:318.11,cuota:8624.67,est:'PENDIENTE'},
+  {xl:46363,cap:8351.27,int:273.40,cuota:8624.67,est:'PENDIENTE'},
+  {xl:46393,cap:8403.58,int:221.09,cuota:8624.67,est:'PENDIENTE'},
+  {xl:46428,cap:8417.80,int:206.87,cuota:8624.67,est:'PENDIENTE'},
+  {xl:46454,cap:8508.99,int:115.68,cuota:8624.67,est:'PENDIENTE'},
+  {xl:46483,cap:8538.48,int:86.19, cuota:8624.67,est:'PENDIENTE'},
+  {xl:46513,cap:8579.99,int:44.69, cuota:8624.68,est:'PENDIENTE'}
+].map(r=>({...r,d:xlD(r.xl)}));
+
+const garRaw=[
+  {ban:'Guayaquil',  tipo:'Prenda Inventario',prop:'JCEVCORP / ASSEMBLYMOTOS',monto:1034007, xlv:46234},
+  {ban:'Guayaquil',  tipo:'Bien Inmueble',    prop:'Juan Carlos Espinoza',    monto:1987467, xlv:46234},
+  {ban:'Internacional',tipo:'Bien Inmueble',  prop:'JCEVCORP',                monto:297260,  xlv:47017},
+  {ban:'Internacional',tipo:'Bien Inmueble',  prop:'Juan Carlos Espinoza',    monto:263948,  xlv:47017},
+  {ban:'Internacional',tipo:'Prenda Inventario',prop:'ASSEMBLYMOTOS',         monto:400334,  xlv:46684},
+  {ban:'Internacional',tipo:'Prenda Inventario',prop:'ASSEMBLYMOTOS',         monto:735479,  xlv:46296},
+  {ban:'Internacional',tipo:'Prenda Inventario',prop:'ASSEMBLYMOTOS',         monto:417215,  xlv:46385},
+  {ban:'Internacional',tipo:'Prenda Inventario',prop:'ASSEMBLYMOTOS',         monto:947215,  xlv:46410},
+  {ban:'Pichincha',  tipo:'Prenda Inventario',prop:'JCEVCORP / ASSEMBLYMOTOS',monto:2000354, xlv:46391},
+  {ban:'Pichincha',  tipo:'Bien Inmueble',    prop:'JCEVCORP',                monto:539977,  xlv:46326},
+  {ban:'Pichincha',  tipo:'Bien Inmueble',    prop:'JCEVCORP',                monto:1569675, xlv:46543},
+  {ban:'Produbanco', tipo:'Bien Inmueble',    prop:'Juan Carlos Espinoza',    monto:765685,  xlv:46387},
+  {ban:'Produbanco', tipo:'Bien Inmueble',    prop:'JCEVCORP',                monto:1958303, xlv:46387},
+  {ban:'Produbanco', tipo:'Bien Inmueble',    prop:'FULLMOTOS',               monto:1296597, xlv:46387}
+].map(r=>({...r,vd:r.xlv?xlD(r.xlv):null}));
+
+// ── HELPERS ──
+function etag(e){
+  const m={JCEVCORP:'tag-j',ASSEMBLY:'tag-a',FULLMOTOS:'tag-f'};
+  return `<span class="tag ${m[e]||''}">${e}</span>`;
+}
+function pillDias(d,est){
+  if(est==='CANCELADO')return '<span class="pill pill-gray">Cancelado</span>';
+  if(!d)return '<span class="pill pill-gray">Sin fecha</span>';
+  const di=dias(d);
+  if(di<0)return `<span class="pill pill-gray">Vencido</span>`;
+  if(di<=30)return `<span class="pill pill-red">${di}d</span>`;
+  if(di<=90)return `<span class="pill pill-yellow">${di}d</span>`;
+  return `<span class="pill pill-green">${di}d</span>`;
+}
+function urgBar(d){
+  if(!d)return 'ub-gray';
+  const di=dias(d);
+  if(di<0||di<=30)return 'ub-red';
+  if(di<=90)return 'ub-yellow';
+  return 'ub-green';
+}
+
+// ── INIT ──
+function initDate(){
+  const opts={weekday:'long',day:'numeric',month:'long',year:'numeric'};
+  document.getElementById('sb-today').textContent=HOY.toLocaleDateString('es-EC',opts);
+}
+
+function initKPIs(){
+  const pend=oblRaw;
+  const d30=pend.filter(r=>dias(r.vd)!==null&&dias(r.vd)>=0&&dias(r.vd)<=30);
+  const d90=pend.filter(r=>dias(r.vd)!==null&&dias(r.vd)>30&&dias(r.vd)<=90);
+  document.getElementById('k30v').textContent=d30.length?fUSD(d30.reduce((s,r)=>s+r.cap,0),true):'$0';
+  document.getElementById('k30s').textContent=d30.length+' operaciones';
+  document.getElementById('k90v').textContent=d90.length?fUSD(d90.reduce((s,r)=>s+r.cap,0),true):'$0';
+  document.getElementById('k90s').textContent=d90.length+' operaciones';
+  const taPend=ta1.filter(r=>r.est==='PENDIENTE').length+ta2.filter(r=>r.est==='PENDIENTE').length+ta3.filter(r=>r.est==='PENDIENTE').length;
+  document.getElementById('kTA').textContent=taPend;
+  const gar90=garRaw.filter(r=>r.vd&&dias(r.vd)>=0&&dias(r.vd)<=90).length;
+  document.getElementById('gar-90').textContent=gar90||'0';
+
+  // topbar
+  const urgT=d30.length>0?`🔴 ${d30.length} vence ≤30d`:'';
+  document.getElementById('tb-urgent').textContent=urgT;
+  if(!urgT)document.getElementById('tb-urgent').style.display='none';
+  document.getElementById('tb-warn').textContent=`⚠ ${d90.length} vencen en 90d`;
+}
+
+function initAlertas(){
+  const div=document.getElementById('alertas-div');
+  let html='';
+  const urg=oblRaw.filter(r=>dias(r.vd)!==null&&dias(r.vd)>=0&&dias(r.vd)<=30);
+  urg.forEach(r=>{html+=`<div class="alert alert-red"><div class="alert-dot"></div><div><strong>URGENTE:</strong> ${r.emp} – ${r.ban} ${fUSD(r.cap)} vence <strong>${fD(r.vd,true)}</strong> (${dias(r.vd)} días)</div></div>`;});
+  const prox=oblRaw.filter(r=>dias(r.vd)!==null&&dias(r.vd)>30&&dias(r.vd)<=90);
+  prox.forEach(r=>{html+=`<div class="alert alert-yellow"><div class="alert-dot"></div><div>${r.emp} – ${r.ban} ${fUSD(r.cap)} vence <strong>${fD(r.vd,true)}</strong> (${dias(r.vd)} días)</div></div>`;});
+  const garUrg=garRaw.filter(r=>r.vd&&dias(r.vd)>=0&&dias(r.vd)<=90);
+  garUrg.forEach(r=>{html+=`<div class="alert alert-yellow"><div class="alert-dot"></div><div>Garantía ${r.ban} — ${r.tipo} ${fUSD(r.monto)} vence <strong>${fD(r.vd,true)}</strong> — renovar</div></div>`;});
+  garRaw.filter(r=>!r.vd).forEach(r=>{html+=`<div class="alert alert-yellow"><div class="alert-dot"></div><div>Garantía ${r.ban} — ${r.tipo} ${fUSD(r.monto)} — <strong>sin fecha de vencimiento registrada</strong></div></div>`;});
+  if(!html)html='<div class="alert alert-green"><div class="alert-dot"></div>No hay vencimientos críticos en los próximos 30 días.</div>';
+  div.innerHTML=html;
+}
+
+function initCharts(){
+  Chart.defaults.color='#4a5568';
+  Chart.defaults.borderColor='rgba(255,255,255,0.05)';
+
+  // Empresa
+  const byEmp={JCEVCORP:0,ASSEMBLY:0,FULLMOTOS:0};
+  oblRaw.forEach(r=>{byEmp[r.emp]=(byEmp[r.emp]||0)+r.cap;});
+  new Chart(document.getElementById('ch-emp'),{
+    type:'doughnut',
+    data:{
+      labels:Object.keys(byEmp),
+      datasets:[{data:Object.values(byEmp),backgroundColor:['#6366f1','#10b981','#f59e0b'],borderWidth:0,hoverOffset:8}]
+    },
+    options:{responsive:true,maintainAspectRatio:false,cutout:'65%',plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>` ${c.label}: ${fUSD(c.raw)}`}}}}
+  });
+  document.getElementById('leg-emp').innerHTML=
+    Object.entries(byEmp).map(([k,v],i)=>`<div class="legend-item"><div class="legend-dot" style="background:${['#6366f1','#10b981','#f59e0b'][i]}"></div>${k}: <strong style="color:var(--text)">${fUSD(v,true)}</strong></div>`).join('');
+
+  // Meses
+  const mMap={};
+  oblRaw.filter(r=>r.tipo!=='TA').forEach(r=>{const k=r.vd.getFullYear()+'-'+String(r.vd.getMonth()+1).padStart(2,'0');mMap[k]=(mMap[k]||0)+r.cap;});
+  [...ta1,...ta2,...ta3].filter(r=>r.est==='PENDIENTE').forEach(r=>{const k=r.d.getFullYear()+'-'+String(r.d.getMonth()+1).padStart(2,'0');mMap[k]=(mMap[k]||0)+r.cap;});
+  const ks=Object.keys(mMap).sort().slice(0,10);
+  const mN={'01':'Ene','02':'Feb','03':'Mar','04':'Abr','05':'May','06':'Jun','07':'Jul','08':'Ago','09':'Sep','10':'Oct','11':'Nov','12':'Dic'};
+  const lbs=ks.map(k=>{const[y,m]=k.split('-');return mN[m]+(y!=='2025'?'\''+y.slice(2):'');});
+  const vals=ks.map(k=>mMap[k]);
+  const maxV=Math.max(...vals);
+  new Chart(document.getElementById('ch-mes'),{
+    type:'bar',
+    data:{labels:lbs,datasets:[{data:vals,backgroundColor:vals.map(v=>v===maxV?'#f87171':v>1000000?'#fbbf24':'#4f9eff'),borderRadius:6,borderSkipped:false}]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>` ${fUSD(c.raw)}`}}},
+      scales:{x:{ticks:{color:'#4a5568',font:{size:10}},grid:{display:false}},y:{ticks:{color:'#4a5568',font:{size:10},callback:v=>v>=1000000?(v/1000000).toFixed(1)+'M':v>=1000?(v/1000).toFixed(0)+'K':v},grid:{color:'rgba(255,255,255,0.04)'}}}}
+  });
+
+  // Banco horizontal
+  const bMap={};
+  oblRaw.forEach(r=>{bMap[r.ban]=(bMap[r.ban]||0)+r.cap;});
+  const bE=Object.entries(bMap).sort((a,b)=>b[1]-a[1]);
+  new Chart(document.getElementById('ch-ban'),{
+    type:'bar',
+    data:{labels:bE.map(e=>e[0]),datasets:[{data:bE.map(e=>e[1]),backgroundColor:['#4f9eff','#6366f1','#f59e0b','#10b981','#a78bfa','#34d399'],borderRadius:6,borderSkipped:false}]},
+    options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>` ${fUSD(c.raw)}`}}},
+      scales:{x:{ticks:{color:'#4a5568',font:{size:10},callback:v=>v>=1000000?(v/1000000).toFixed(1)+'M':v>=1000?(v/1000).toFixed(0)+'K':v},grid:{color:'rgba(255,255,255,0.04)'}},y:{ticks:{color:'#8a93a8',font:{size:10}},grid:{display:false}}}}
+  });
+}
+
+function renderObl(){
+  const fE=document.getElementById('fEmp').value;
+  const fB=document.getElementById('fBan').value;
+  const fT=document.getElementById('fTipo').value;
+  const data=oblRaw.filter(r=>
+    (!fE||r.emp===fE)&&
+    (!fB||r.ban===fB)&&
+    (!fT||(fT==='TA'?r.tipo==='TA':r.tipo==='UNICO'))
+  ).sort((a,b)=>a.vd-b.vd);
+  document.getElementById('tb-obl').innerHTML=data.map(r=>{
+    const di=dias(r.vd);
+    return `<tr>
+      <td>${etag(r.emp)}</td>
+      <td style="color:var(--text2)">${r.ban}</td>
+      <td style="font-family:'DM Mono',monospace;font-weight:500">${fUSD(r.cap)}</td>
+      <td style="font-family:'DM Mono',monospace;color:var(--text3)">${fUSD(r.int)}</td>
+      <td style="font-family:'DM Mono',monospace">${fUSD(r.tot)}</td>
+      <td style="font-family:'DM Mono',monospace;color:var(--yellow)">${fPct(r.tasa)}</td>
+      <td style="font-family:'DM Mono',monospace;font-weight:500">${fD(r.vd,true)}</td>
+      <td>${pillDias(r.vd,null)}</td>
+      <td>${r.tipo==='TA'?'<span class="pill pill-blue">TA mensual</span>':'<span class="pill pill-gray">Pago único</span>'}</td>
+    </tr>`;
+  }).join('');
+  const totCap=data.reduce((s,r)=>s+r.cap,0);
+  const totTot=data.reduce((s,r)=>s+r.tot,0);
+  document.getElementById('tot-obl').innerHTML=`<span>${data.length} registros</span><span>Capital total: <strong>${fUSD(totCap)}</strong></span><span>Total con interés: <strong>${fUSD(totTot)}</strong></span>`;
+}
+
+function renderTA(bodyId,data,progId,progLabel){
+  const total=data.length;
+  const cancel=data.filter(r=>r.est==='CANCELADO').length;
+  const pct=Math.round(cancel/total*100);
+  document.getElementById(progId).style.width=pct+'%';
+  document.getElementById(progLabel).textContent=`${cancel}/${total} cuotas pagadas (${pct}%)`;
+  document.getElementById(bodyId).innerHTML=data.map(r=>{
+    const di=dias(r.d);
+    let pill;
+    if(r.est==='CANCELADO')pill='<span class="pill pill-gray">✓ Pagado</span>';
+    else if(di<0)pill='<span class="pill pill-red">Vencida</span>';
+    else if(di<=30)pill=`<span class="pill pill-red">${di}d</span>`;
+    else if(di<=90)pill=`<span class="pill pill-yellow">${di}d</span>`;
+    else pill=`<span class="pill pill-green">${di}d</span>`;
+    return `<tr style="${r.est==='CANCELADO'?'opacity:.4':''}">
+      <td style="font-family:'DM Mono',monospace;font-weight:500">${fD(r.d)}</td>
+      <td style="font-family:'DM Mono',monospace">${fUSD(r.cap)}</td>
+      <td style="font-family:'DM Mono',monospace;color:var(--text3)">${fUSD(r.int)}</td>
+      <td style="font-family:'DM Mono',monospace;font-weight:600;color:var(--text)">${fUSD(r.cuota)}</td>
+      <td>${pill}</td>
+    </tr>`;
+  }).join('');
+}
+
+function toggleTA(id,icId){
+  const body=document.getElementById(id);
+  const ic=document.getElementById(icId);
+  const open=body.classList.toggle('open');
+  ic.classList.toggle('open',open);
+}
+
+function renderGar(){
+  const sorted=garRaw.slice().sort((a,b)=>(a.vd?dias(a.vd):99999)-(b.vd?dias(b.vd):99999));
+  document.getElementById('gar-grid').innerHTML=sorted.map(r=>{
+    const di=r.vd?dias(r.vd):null;
+    let cls,pill;
+    if(!di){cls='gar-gray';pill='<span class="pill pill-gray">Sin fecha</span>';}
+    else if(di<=30){cls='gar-red';pill=`<span class="pill pill-red">${di}d — renovar URGENTE</span>`;}
+    else if(di<=90){cls='gar-yellow';pill=`<span class="pill pill-yellow">${di}d — próximo</span>`;}
+    else{cls='gar-green';pill=`<span class="pill pill-green">${di}d</span>`;}
+    return `<div class="gar-card ${cls}">
+      <div class="gar-bank">${r.ban}</div>
+      <div class="gar-tipo">${r.tipo}</div>
+      <div class="gar-prop">${r.prop}</div>
+      <div class="gar-amount">${fUSD(r.monto)}</div>
+      <div class="gar-footer">
+        <span class="gar-venc">${r.vd?fD(r.vd,true):'Sin fecha registrada'}</span>
+        ${pill}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function renderCal(){
+  const mMap={};
+  const add=(d,cap,int,cuota,emp,ban,tipo)=>{
+    const k=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0');
+    if(!mMap[k])mMap[k]=[];
+    mMap[k].push({d,cap,int,cuota,emp,ban,tipo});
+  };
+  oblRaw.filter(r=>r.tipo!=='TA').forEach(r=>add(r.vd,r.cap,r.int,r.tot,r.emp,r.ban,'Pago único'));
+  ta1.filter(r=>r.est==='PENDIENTE').forEach(r=>add(r.d,r.cap,r.int,r.cuota,'JCEVCORP','PRODUBANCO','Cuota TA'));
+  ta2.filter(r=>r.est==='PENDIENTE').forEach(r=>add(r.d,r.cap,r.int,r.cuota,'FULLMOTOS','PRODUBANCO','Cuota TA'));
+  ta3.filter(r=>r.est==='PENDIENTE').forEach(r=>add(r.d,r.cap,r.int,r.cuota,'ASSEMBLY','PRODUBANCO','Cuota TA'));
+  const mNom={1:'Enero',2:'Febrero',3:'Marzo',4:'Abril',5:'Mayo',6:'Junio',7:'Julio',8:'Agosto',9:'Septiembre',10:'Octubre',11:'Noviembre',12:'Diciembre'};
+  document.getElementById('cal-div').innerHTML=Object.keys(mMap).sort().map(k=>{
+    const regs=mMap[k].sort((a,b)=>a.d-b.d);
+    const[y,m]=k.split('-');
+    const totPago=regs.reduce((s,r)=>s+r.cuota,0);
+    const totCap=regs.reduce((s,r)=>s+r.cap,0);
+    const wdays=['DOM','LUN','MAR','MIÉ','JUE','VIE','SÁB'];
+    return `<div class="cal-month">
+      <div class="cal-month-header">
+        <div>
+          <span class="cal-month-name">${mNom[parseInt(m)]} ${y}</span>
+          <span style="font-size:12px;color:var(--text3);margin-left:10px;font-family:'DM Mono',monospace">${regs.length} pagos</span>
+        </div>
+        <span class="cal-month-total">${fUSD(totPago)} total</span>
+      </div>
+      ${regs.map(r=>`
+      <div class="cal-row">
+        <div class="urgency-bar ${urgBar(r.d)}"></div>
+        <div class="cal-date-box">
+          <div class="cal-day">${String(r.d.getDate()).padStart(2,'0')}</div>
+          <div class="cal-wday">${wdays[r.d.getDay()]}</div>
+        </div>
+        <div class="cal-row-body">
+          ${etag(r.emp)}
+          <span style="color:var(--text2);font-size:12px">${r.ban}</span>
+          <span class="pill pill-gray" style="font-size:10px">${r.tipo}</span>
+          <span style="font-family:'DM Mono',monospace;font-size:11px;color:var(--text3)">Cap: ${fUSD(r.cap)}</span>
+        </div>
+        <div style="padding:12px 16px;display:flex;flex-direction:column;align-items:flex-end;justify-content:center;gap:2px">
+          <div class="cal-row-amount">${fUSD(r.cuota)}</div>
+          <div class="cal-row-cap">capital+int</div>
+        </div>
+      </div>`).join('')}
+    </div>`;
+  }).join('');
+}
+
+// ── NAVIGATION ──
+const titles={resumen:'Panel Ejecutivo',obligaciones:'Obligaciones Financieras',amortizacion:'Tablas de Amortización',garantias:'Garantías Bancarias',calendario:'Calendario de Pagos',ia:'Asistente Financiero IA'};
+function nav(name){
+  document.querySelectorAll('.nav-item').forEach((b,i)=>{
+    b.classList.toggle('active',['resumen','obligaciones','amortizacion','garantias','calendario','ia'][i]===name);
+  });
+  document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
+  document.getElementById('sec-'+name).classList.add('active');
+  document.getElementById('tb-title').textContent=titles[name];
+}
+
+// ── AI ──
+const CTX=`Eres analista financiero del Grupo JCEVCORP (Ecuador). Fecha de hoy: 27 mayo 2025.
+
+OBLIGACIONES FINANCIERAS PENDIENTES:
+1. JCEVCORP – PRODUBANCO $1,000,000 al 6% — TA mensual $86,170.36/mes, vcto final 16 ene 2026
+2. ASSEMBLY – PICHINCHA PANAMÁ $490,000 al 6% — pago único 1 jul 2025
+3. JCEVCORP – PICHINCHA PANAMÁ $478,000 al 6% — pago único 12 jul 2025
+4. ASSEMBLY – EBNA BANK $180,000 al 5.6% — pago único 12 jul 2025
+5. ASSEMBLY – PICHINCHA PANAMÁ $387,500 al 6% — pago único 14 jul 2025
+6. ASSEMBLY – EBNA BANK $314,605 al 7% — pago único 29 jun 2025
+7. ASSEMBLY – EBNA BANK $556,000 al 5.7% — pago único 1 jul 2025
+8. ASSEMBLY – EBNA BANK $358,494 al 5.6% — pago único 28 jul 2025
+9. ASSEMBLY – PICHINCHA PANAMÁ $87,500 al 6% — pago único 9 sep 2025
+10. JCEVCORP – ST GEORGES $700,000 al 7.75% — pago único 8 oct 2025
+11. ASSEMBLY – EBNA BANK $180,000 al 5.6% — pago único 21 oct 2025
+12. JCEVCORP – BOLIVARIANO $521,636 al 6% — pago único 27 oct 2025
+13. JCEVCORP – EBNA BANK $200,000 al 5.6% — pago único 27 nov 2025
+14-17. JCEVCORP – PAPEL COMERCIAL $4,000,000 al 5.5% — vencen dic 2025
+18. FULLMOTOS – PRODUBANCO $500,000 al 6.25% — TA mensual $43,137/mes
+19. ASSEMBLY – PRODUBANCO $100,000 al 6.25% — TA mensual $8,624/mes
+
+GARANTÍAS: 14 vigentes por $13.3M. Guayaquil 2 garantías vencen 21 jul 2025. Produbanco 3 sin fecha registrada.
+Responde en español, conciso, máximo 200 palabras, orientado a la acción.`;
+
+async function askAI(){
+  const inp=document.getElementById('ai-in');
+  const q=inp.value.trim();if(!q)return;
+  const rd=document.getElementById('ai-resp');
+  rd.innerHTML='<div class="ld"><span></span><span></span><span></span></div>&nbsp; Analizando portafolio...';
+  inp.value='';
+  try{
+    const r=await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:1000,system:CTX,messages:[{role:'user',content:q}]})
+    });
+    const d=await r.json();
+    rd.innerHTML='<div style="line-height:1.75">'+(d.content?.map(b=>b.text||'').join('')||'Sin respuesta.').replace(/\n/g,'<br>')+'</div>';
+  }catch(e){rd.innerHTML='<span style="color:var(--red)">Error al consultar. Revisa la conexión.</span>';}
+}
+function qk(p){nav('ia');document.getElementById('ai-in').value=p;askAI();}
+
+// ── BOOT ──
+initDate();
+initKPIs();
+initAlertas();
+renderObl();
+renderTA('ta1body',ta1,'ta1-prog','ta1-prog-label');
+renderTA('ta2body',ta2,'ta2-prog','ta2-prog-label');
+renderTA('ta3body',ta3,'ta3-prog','ta3-prog-label');
+renderGar();
+renderCal();
+setTimeout(initCharts,100);
+</script>
+</body>
+</html>
