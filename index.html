@@ -164,6 +164,7 @@ tr:hover td{background:rgba(255,255,255,.02)}
 @keyframes toastIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
 ::-webkit-scrollbar{width:4px;height:4px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:var(--bg4);border-radius:2px}
 </style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 </head>
 <body>
 <div class="shell">
@@ -225,12 +226,13 @@ tr:hover td{background:rgba(255,255,255,.02)}
       <span class="tb-badge warn" id="tb-warn"></span>
       <span class="tb-badge" id="tb-urgent" style="display:none"></span>
       <div id="auth-ui">
-        <button class="btn-od" onclick="loginOneDrive()">üîó Conectar OneDrive</button>
+        <!-- OneDrive removed - using local Excel upload -->
       </div>
       <button class="btn-act" id="btn-act" onclick="doActualizar()">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 4v6h-6M1 20v-6h6"/><path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/></svg>
-        Actualizar
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+        Cargar Excel
       </button>
+      <input type="file" id="excel-upload-input" accept=".xlsx,.xls" style="display:none" onchange="handleExcelUpload(event)">
     </div>
   </div>
   <div class="content">
@@ -388,7 +390,7 @@ function ubCls(dt){
   if(di===null||di<0||di<=30)return'ub-red';
   if(di<=90)return'ub-yel';return'ub-grn';
 }
-const wdays=['DOM','LUN','MAR','MI√â','JUE','VIE','S√ÅC'];
+const wdays=['DOM','LUN','MAR','MI√â','JUE','VIE','S√ÅB'];
 const mNom={1:'Enero',2:'Febrero',3:'Marzo',4:'Abril',5:'Mayo',6:'Junio',7:'Julio',8:'Agosto',9:'Septiembre',10:'Octubre',11:'Noviembre',12:'Diciembre'};
 
 // ‚ïê‚ïê‚ïê OBLIGACIONES DATA ‚ïê‚ïê‚ïê
@@ -421,87 +423,205 @@ const taConfig=[
     {d:d('2026-05-22'),cap:81216.19,int:4954.17,cuota:86170.36,est:'CANCELADO'},
     {d:d('2026-06-22'),cap:81304.63,int:4865.73,cuota:86170.36,est:'PENDIENTE'},
     {d:d('2026-07-22'),cap:81878.28,int:4292.08,cuota:86170.36,est:'PENDIENTE'},
-    {d:d('2026-08-22'),cap:81910.66,int:4259.7,ouota:86170.36,est:'PENDIENTE'},
-    {d:d('2026-09-22'),cap:82832.79,ieπ–ËÃÃÃ‹∏‘‹±ç’Ω—ÑË‡ÿƒ‹¿∏Ãÿ±ïÕ–ËùA9%9QùÙ∞(ÄÄÄÅÌêÈê†ú»¿»ÿ¥ƒ¿¥»»ú§±çÖ¿Ë‡Ãƒ–»∏»»±•π–ËÃ¿»‡∏ƒ–±ç’Ω—ÑË‡ÿƒ‹¿∏Ãÿ±ïÕ–ËùA9%9QùÙ∞(ÄÄÄÅÌêÈê†ú»¿»ÿ¥ƒƒ¥»»ú§±çÖ¿Ë‡ÃÃ‰–∏‡‘±•π–Ë»‹‹‘∏‘ƒ±ç’Ω—ÑË‡ÿƒ‹¿∏Ãÿ±ïÕ–ËùA9%9QùÙ∞(ÄÄÄÅÌêÈê†ú»¿»ÿ¥ƒ»¥»»ú§±çÖ¿Ë‡–¿ÿ‡∏»ƒ±•π–Ë»ƒ¿»∏ƒ‘±ç’Ω—ÑË‡ÿƒ‹¿∏Ãÿ±ïÕ–ËùA9%9QùÙ∞(ÄÄÄÅÌêÈê†ú»¿»‹¥¿ƒ¥»»ú§±çÖ¿Ë‡–Ãÿ‡∏––±•π–Ëƒ‡¿ƒ∏‰»±ç’Ω—ÑË‡ÿƒ‹¿∏Ãÿ±ïÕ–ËùA9%9QùÙ∞(ÄÄÄÅÌêÈê†ú»¿»‹¥¿»¥»»ú§±çÖ¿Ë‡–‡ƒ‘∏»–±•π–ËƒÃ‘‘∏ƒ»±ç’Ω—ÑË‡ÿƒ‹¿∏Ãÿ±ïÕ–ËùA9%9QùÙ∞(ÄÄÄÅÌêÈê†ú»¿»‹¥¿Ã¥»»ú§±çÖ¿Ë‡‘Ã‘»∏¿‡±•π–Ë‡ƒ‡∏»‡±ç’Ω—ÑË‡ÿƒ‹¿∏Ãÿ±ïÕ–ËùA9%9QùÙ∞(ÄÄÄÅÌêÈê†ú»¿»‹¥¿–¥»»ú§±çÖ¿Ë‡‘‹ƒÿ∏–ƒ±•π–Ë–‘Ã∏‰–±ç’Ω—ÑË‡ÿƒ‹¿∏Ã‘±ïÕ–ËùA9%9QùÙ(ÄÅuÙ∞(ÄÅÌ•êËù—Ñ»ú±ïµ¿ËùU115=Q=Lú±âÖ∏ËâAI=U	9<à±µΩπ—ºË‘¿¿¿¿¿∏¿±—ÖÕÑËúÿ∏»‘îú±Ÿç—Ω1Öâï∞Ëù5Ö‰Ä»¿»‹ú±ç±»ËùŸÖ»†¥µô’±∞∞çò‘Âî¡à§ú±ëÖ—ÑÈl(ÄÄÄÅÌêÈê†ú»¿»ÿ¥¿ÿ¥¿‡ú§±çÖ¿Ë–¿»‹»∏–»±•π–Ë»‡ÿ–∏‘‡±ç’Ω—ÑË–ÃƒÃ‹∏¿±ïÕ–Ëù91<ùÙ∞(ÄÄÄÅÌêÈê†ú»¿»ÿ¥¿‹¥¿ÿú§±çÖ¿Ë–¿‹–»∏‘‰±•π–Ë»Ã‰–∏–ƒ±ç’Ω—ÑË–ÃƒÃ‹∏¿±ïÕ–ËùA9%9QùÙ∞(ÄÄÄÅÌêÈê†ú»¿»ÿ¥¿‡¥ƒƒú§±çÖ¿Ë–¿ÿÿÃ∏‡»±•π–Ë»–‹Ã∏ƒ‡±ç’Ω—ÑË–ÃƒÃ‹∏¿±ïÕ–ËùA9%9QùÙ∞(ÄÄÄÅÌêÈê†ú»¿»ÿ¥¿‰¥¿‡ú§±çÖ¿Ë–ƒ»‰‹∏‰–±•π–Ëƒ‡Ã‰∏¿ÿ±ç’Ω—ÑË–ÃƒÃ‹∏¿±ïÕ–ËùA9%9QùÙ∞(ÄÄÄÅÌêÈê†ú»¿»ÿ¥ƒ¿¥¿‡ú§±çÖ¿Ë–ƒÃ‡ƒ∏ÿ‹±•π–Ëƒ‹‘‘∏ÃÃ±ç’Ω—ÑË–ÃƒÃ‹∏¿±ïÕ–ËùA9%9QùÙ∞(ÄÄÄÅÌêÈê†ú»¿»ÿ¥ƒƒ¥¿‰ú§±çÖ¿Ë–ƒ–‰–∏‘‘±•π–Ëƒÿ–»∏–‘±ç’Ω—ÑË–ÃƒÃ‹∏¿±ïÕ–ËùA9%9QùÙ∞(ÄÄÄÅÌêÈê†ú»¿»ÿ¥ƒ»¥¿‡ú§±çÖ¿Ë–ƒ‡‘‹∏––±•π–Ëƒ»‹‰∏‘ÿ±ç’Ω—ÑË–ÃƒÃ‹∏¿±ïÕ–ËùA9%9QùÙ∞(ÄÄÄÅÌêÈê†ú»¿»‹¥¿ƒ¥¿‡ú§±çÖ¿Ë–ƒ‰‰–∏–‹±•π–Ëƒƒ–»∏‘Ã±ç’Ω—ÑË–ÃƒÃ‹∏¿±ïÕ–ËùA9%9QùÙ∞(ÄÄÄÅÌêÈê†ú»¿»‹¥¿»¥ƒ¿ú§±çÖ¿Ë–»ƒÿƒ∏Ã‘±•π–Ë‰‹‘∏ÿ‘±ç’Ω—ÑË–ÃƒÃ‹∏¿±ïÕ–ËùA9%9QùÙ∞(ÄÄÄÅÌêÈê†ú»¿»‹¥¿Ã¥¿‡ú§±çÖ¿Ë–»‘‘‡∏ÿ»±•π–Ë‘‹‡∏Ã‡±ç’Ω—ÑË–ÃƒÃ‹∏¿±ïÕ–ËùA9%9QùÙ∞(ÄÄÄÅÌêÈê†ú»¿»‹¥¿–¥¿‡ú§±çÖ¿Ë–»ÿ‹ÿ∏––±•π–Ë–ÿ¿∏‘ÿ±ç’Ω—ÑË–ÃƒÃ‹∏¿±ïÕ–ËùA9%9QùÙ∞(ÄÄÄÅÌêÈê†ú»¿»‹¥¿‘¥ƒ¿ú§±çÖ¿Ë–»‡‰‡∏ÿ‰±•π–Ë»Ã‡∏ÃÃ±ç’Ω—ÑË–ÃƒÃ‹∏¿»¿¿¿¿¿¿¿¿¿–±ïÕ–ËùA9%9QùÙ(ÄÅuÙ∞(ÄÅÌ•êËù—ÑÃú±ïµ¿ËùMM5	1dú±âÖ∏ËâAI=U	9<à±µΩπ—ºËƒ¿¿¿¿¿∏¿±—ÖÕÑËúÿ∏»‘îú±Ÿç—Ω1Öâï∞Ëù)’∏Ä»¿»‹ú±ç±»ËùŸÖ»†¥µÖÕÕ¥∞åƒ¡à‰‡ƒ§ú±ëÖ—ÑÈl(ÄÄÄÅÌêÈê†ú»¿»ÿ¥¿ÿ¥¿‡ú§±çÖ¿Ë‡¿‘ƒ∏‹‘±•π–Ë‘‹»∏‰»±çΩ’Ω—ÑË‡ÿ»–∏ÿ‹±ïÕ–Ëù91<ùÙ∞(ÄÄÄÅÌêÈê†ú»¿»ÿ¥¿‹¥¿ÿú§±çÖ¿Ë‡ƒ‹‹∏‹±•π–Ë––ÿ∏‰‹±çΩ’Ω—ÑË‡ÿ»–∏ÿ‹±ïÕ–ËùA9%9QùÙ∞(ÄÄÄÅÌêÈê†ú»¿»ÿ¥¿‡¥¿ÿú§±çÖ¿Ë‡ƒ‹Ã∏‡»±•π–Ë–‘¿∏‡‘±ç’Ω—ÑË‡ÿ»–∏ÿ‹±ïÕ–ËùA9%9QùÙ∞(ÄÄÄÅÌêÈê†ú»¿»ÿ¥¿‰¥¿‹ú§±çÖ¿Ë‡»¿–∏ÿ‰±•π–Ë–ƒ‰∏‰‡±ç’Ω—ÑË‡ÿ»–∏ÿ‹±ïÕ–ËùA9%9QùÙ∞(ÄÄÄÅÌêÈê†ú»¿»ÿ¥ƒ¿¥¿ÿú§±çÖ¿Ë‡»‡‘∏Ã‹±•π–ËÃÃ‰∏Ã±ç’Ω—ÑË‡ÿ»–∏ÿ‹±ïÕ–ËùA9%9QùÙ∞(ÄÄÄÅÌêÈê†ú»¿»ÿ¥ƒƒ¥¿ÿú§±çÖ¿Ë‡Ã¿ÿ∏‘ÿ±•π–ËÃƒ‡∏ƒƒ±ç’Ω—ÑË‡ÿ»–∏ÿ‹±ïÕ–ËùA9%9QùÙ∞(ÄÄÄÅÌêÈê†ú»¿»ÿ¥ƒ»¥¿‹ú§±çÖ¿Ë‡Ã‘ƒ∏»‹±•π–Ë»‹Ã∏–±ç’Ω—ÑË‡ÿ»–∏ÿ‹±ïÕ–ËùA9%9QùÙ∞(ÄÄÄÅÌêÈê†ú»¿»‹¥¿ƒ¥¿ÿú§±çÖ¿Ë‡–¿Ã∏‘‡±•π–Ë»»ƒ∏¿‰±ç’Ω—ÑË‡ÿ»–∏ÿ‹±ïÕ–ËùA9%9QùÙ∞(ÄÄÄÅÌêÈê†ú»¿»‹¥¿»¥ƒ¿ú§±çÖ¿Ë‡–ƒ‹∏‡±•π–Ë»¿ÿ∏‡‹±ç’Ω—ÑË‡ÿ»–∏ÿ‹±ïÕ–ËùA9%9QùÙ∞(ÄÄÄÅÌêÈê†ú»¿»‹¥¿Ã¥¿‡ú§±çÖ¿Ë‡‘¿‡∏‰‰±•π–Ëƒƒ‘∏ÿ‡±ç’Ω—ÑË‡ÿ»–∏ÿ‹±ïÕ–ËùA9%9QùÙ∞(ÄÄÄÅÌêÈê†ú»¿»‹¥¿–¥¿ÿú§±çÖ¿Ë‡‘Ã‡∏–‡±•π–Ë‡ÿ∏ƒ‰±ç’Ω—ÑË‡ÿ»–∏ÿ‹±ïÕ–ËùA9%9QùÙ∞(ÄÄÄÅÌêÈê†ú»¿»‹¥¿‘¥¿ÿú§±çÖ¿Ë‡‘‹‰∏‰‰±•π–Ë––∏ÿ‰±ç’Ω—ÑË‡ÿ»–∏ÿ‡±ïÕ–ËùA9%9QùÙ(ÄÅuÙ∞(ÄÅÌ•êËù—Ñ–ú±ïµ¿Ëù)Y=I@ú±âÖ∏ËâAI=U	9<à±µΩπ—ºËƒ¿¿¿¿¿¿∏¿±—ÖÕÑËúÿ∏¿¿îú±Ÿç—Ω1Öâï∞Ëù)’∏Ä»¿»‹ú±ç±»ËúçÑ‹·âôÑú±ëÖ—ÑÈl(ÄÄÄÅÌêÈê†ú»¿»ÿ¥¿‹¥¿Ãú§±çÖ¿Ë‡¿‡ƒƒ∏»‰±•π–Ë‘ÃÃÃ∏ÃÃ±ç’Ω—ÑË‡ÿƒ––∏ÿ»±ïÕ–ËùA9%9QùÙ∞(ÄÄÄÅÌêÈê†ú»¿»ÿ¥¿‡¥¿Ãú§±çÖ¿Ë‡ƒÃ‰‘∏–‡±•π–Ë–‹–‰∏ƒ–±ç’Ω—ÑË‡ÿƒ––∏ÿ»±ïÕ–ËùA9%9QùÙ∞(ÄÄÄÅÌêÈê†ú»¿»ÿ¥¿‰¥¿Ãú§±çÖ¿Ë‡ƒ‡ƒÿ∏¿»±•π–Ë–Ã»‡∏ÿ±ç’Ω—ÑË‡ÿƒ––∏ÿ»¿¿¿¿¿¿¿¿ƒ±ïÕ–ËùA9%9QùÙ∞(ÄÄÄÅÌêÈê†ú»¿»ÿ¥ƒ¿¥¿‘ú§±çÖ¿Ë‡»ƒƒ»∏‹–±•π–Ë–¿Ãƒ∏‡‡±ç’Ω—ÑË‡ÿƒ––∏ÿ»¿¿¿¿¿¿¿¿ƒ±ïÕ–ËùA9%9QùÙ∞(ÄÄÄÅÌêÈê†ú»¿»ÿ¥ƒƒ¥¿–ú§±çÖ¿Ë‡»‹‹‘∏Ã±•π–ËÃÃÿ‡∏Ã»±ç’Ω—ÑË‡ÿƒ–Ã∏ÿ»¿¿¿¿¿¿¿¿ƒ±ïÕ–ËùA9%9QùÙ∞(ÄÄÄÅÌêÈê†ú»¿»ÿ¥ƒ»¥¿Ãú§±çÖ¿Ë‡Ã»‡‹∏ÿ‰±•π–Ë»‡‘ÿ∏‰Ã±ç’Ω—ÑË‡ÿƒ––∏ÿ»±ïÕ–ËùA9%9QùÙ∞(ÄÄÄÅÌêÈê†ú»¿»‹¥¿ƒ¥¿–ú§±çÖ¿Ë‡Ã–Ãÿ∏Ã‘±•π–Ë»‹¿‡∏»‹±ç’Ω—ÑË‡ÿƒ––∏ÿ»¿¿¿¿¿¿¿¿ƒ±ïÕ–ËùA9%9QùÙ∞(ÄÄÄÅÌêÈê†ú»¿»‹¥¿»¥¿Ãú§±çÖ¿Ë‡–¿»»∏‹‰±•π–Ë»ƒ»ƒ∏‡Ã±ç’Ω—ÑË‡ÿƒ––∏ÿ»±ïÕ–ËùA9%9QùÙ∞(ÄÄÄÅÌêÈê†ú»¿»‹¥¿Ã¥¿Ãú§±çÖ¿Ë‡–‘‘ÿ∏Ãÿ±•π–Ëƒ‘‡‡∏»ÿ±ç’Ω—ÑË‡ÿƒ––∏ÿ»±ïÕ–ËùA9%9QùÙ∞(ÄÄÄÅÌêÈê†ú»¿»‹¥¿–¥¿‘ú§±çÖ¿Ë‡–‹Ã‹∏‡±•π–Ëƒ–¿ÿ∏‡»±ç’Ω—ÑË‡ÿƒ––∏ÿ»¿¿¿¿¿¿¿¿ƒ±ïÕ–ËùA9%9QùÙ∞(ÄÄÄÅÌêÈê†ú»¿»‹¥¿‘¥¿Ãú§±çÖ¿Ë‡‘Ã–ÿ∏–±•π–Ë‹‰‡∏»»±ç’Ω—ÑË‡ÿƒ––∏ÿ»±ïÕ–ËùA9%9QùÙ∞(ÄÄÄÅÌêÈê†ú»¿»‹¥¿ÿ¥¿Ãú§±çÖ¿Ë‡‘‹¿ƒ∏‹‡±•π–Ë––»∏‹‰±ç’Ω—ÑË‡ÿƒ––∏‘ÿ‰‰‰‰‰‰‰‰‰±ïÕ–ËùA9%9QùÙ(ÄÅuÙ)tÏ((ººÉäVCäVCäV@ÅI9S5LÉäVCäVCäV@)çΩπÕ–ÅùÖ…IÖ‹ıl(ÄÅÌâÖ∏Ëù’ÖÂÖ≈’•∞ú∞ÄÅ—•¡ºËùA…ïπëÑÅ%πŸïπ—Ö…•ºú±¡…Ω¿Ëù)Y=I@ÄºÅMM5	1e5=Q=Lú±µΩπ—ºËƒ¿Ã–¿¿‹∞ÅŸêÈê†ú»¿»ÿ¥¿‹¥»ƒú•Ù∞(ÄÅÌâÖ∏Ëù’ÖÂÖ≈’•∞ú∞ÄÅ—•¡ºËù	•ï∏Å%πµ’ïâ±îú∞ÄÄÄÅ¡…Ω¿Ëù)’Ö∏ÅÖ…±ΩÃÅÕ¡•πΩÈÑú∞ÄÄÄÅµΩπ—ºËƒ‰‡‹–ÿ‹∞ÅŸêÈê†ú»¿»ÿ¥¿‹¥»ƒú•Ù∞(ÄÅÌâÖ∏Ëù%π—ï…πÖç•ΩπÖ∞ú±—•¡ºËù	•ï∏Å%π’µïâ±îú∞ÄÅ¡…Ω¿Ëù)Y=I@ú∞ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÅµΩπ—ºË»‰‹»ÿ¿∞ÄÅŸêÈπ’±±Ù∞(ÄÅÌâÖ∏Ëù%π—ï…πÖç•ΩπÖ∞ú±—•¡ºËù	•ï∏Å%πµ’ïâ±îú∞ÄÅ¡…Ω¿Ëù)’Ö∏ÅÖ…±ΩÃÅÕ¡•πΩÈÑú∞ÄÄÄÅµΩπ—ºË»ÿÃ‰–‡∞ÄÅŸêÈπ’±±Ù∞(ÄÅÌâÖ∏Ëù%π—ï…πÖç•ΩπÖ∞ú±—•¡ºËùA…ïπëÑÅ%πŸïπ—Ö…•ºú±¡…Ω¿ËùMM5	1e5=Q=Lú∞ÄÄÄÄÄÄÄÄÅµΩπ—ºË–¿¿ÃÃ–∞ÄÅŸêÈπ’±±Ù∞(ÄÅÌâÖ∏Ëù%π—ï…πÖç•ΩπÖ∞ú±—•¡ºËùA…ïπëÑÅ%πŸïπ—Ö…•ºú±¡…Ω¿ËùMM5	1e5=Q=Lú∞ÄÄÄÄÄÄÄÄÅµΩπ—ºË‹Ã‘–‹‰∞ÄÅŸêÈê†ú»¿»ÿ¥ƒ¿¥¿‘ú•Ù∞(ÄÅÌâÖ∏Ëù%π—ï…πÖç•ΩπÖ∞ú±—•¡ºËùA…ïπëÑÅ%πŸïπ—Ö…•ºú±¡…Ω¿ËùMM5	1e5=Q=Lú∞ÄÄÄÄÄÄÄÄÅµΩπ—ºË–ƒ‹»ƒ‘∞ÄÅŸêÈê†ú»¿»‹¥¿ƒ¥¿‘ú•Ù∞(ÄÅÌâÖ∏Ëù%π—ï…πÖç•ΩπÖ∞ú±—•¡ºËùA…ïπëÑÅ%πŸïπ—Ö…•ºú±¡…Ω¿ËùMM5	1e5=Q=Lú∞ÄÄÄÄÄÄÄÄÅµΩπ—ºË‰–‹»ƒ‘∞ÄÅŸêÈê†ú»¿»‹¥¿»¥ƒ¿ú•Ù∞(ÄÅÌâÖ∏ËùA•ç°•πç°Ñú∞ÄÅ—•¡ºËùA…ïπëÑÅ%πŸïπ—Ö…•ºú±¡…Ω¿Ëù)Y=I@ÄºÅMM5	1e5=Q=Lú±µΩπ—ºË»¿¿¿Ã‘–∞ÅŸêÈê†ú»¿»ÿ¥ƒ»¥»ÿú•Ù∞(ÄÅÌâÖ∏ËùA•ç°•πç°Ñú∞ÄÅ—•¡ºËù	•ï∏Å%πµ’ïâ±îú∞ÄÄÄÅ¡…Ω¿Ëù)Y=I@ú∞ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÅµΩπ—ºË‘Ã‰‰‹‹∞ÄÅŸêÈê†ú»¿»ÿ¥ƒƒ¥¿‘ú•Ù∞(ÄÅÌâÖ∏ËùA•ç°•πç°Ñú∞ÄÅ—•¡ºËù	•ï∏Å%πµ’ïâ±îú∞ÄÄÄÅ¡…Ω¿Ëù)Y=I@ú∞ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÅµΩπ—ºËƒ‘ÿ‰ÿ‹‘∞ÅŸêÈê†ú»¿»‹¥¿‘¥Ãƒú•Ù∞(ÄÅÌâÖ∏ËùA…Ωë’âÖπçºú∞Å—•¡ºËù	•ï∏Å%πµ’ïâ±îú∞ÄÄÄÅ¡…Ω¿Ëù)’Ö∏ÅÖ…±ΩÃÅÕ¡•πΩÈÑú∞ÄÄÄÅµΩπ—ºË‹ÿ‘ÿ‡‘∞ÄÅŸêÈê†ú»¿»ÿ¥ƒ»¥Ãƒú•Ù∞(ÄÅÌâÖ∏ËùA…Ωë’âÖπçºú∞Å—•¡ºËù	•ï∏Å%πµ’ïâ±îú∞ÄÄÄÅ¡…Ω¿Ëù)Y=I@ú∞ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÅµΩπ—ºËƒ‰‘‡Ã¿Ã∞ÅŸêÈê†ú»¿»ÿ¥ƒ»¥Ãƒú•Ù∞(ÄÅÌâÖ∏ËùA…Ωë’âÖπçºú∞Å—•¡ºËù	•ï∏Å%πµ’ïâ±îú∞ÄÄÄÅ¡…Ω¿ËùU115=Q=Lú∞ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÅµΩπ—ºËƒ»‰ÿ‘‰‹∞ÅŸêÈê†ú»¿»ÿ¥ƒ»¥Ãƒú•Ù∞)tπµÖ¿°»Ù¯°Ï∏∏π…Ù§§Ï((ººÉäVCäVCäV@Å1U)=LÅQÉäVCäVCäV@)çΩπÕ–Å}çÕIÖ‹ıl(ÄÅlâ)Y=I@à∞â=]9Ae59QLà∞â9Q%%A<à∞¿∏¿∞¿∏¿∞–‘¿¿¿¿∏¿∞à»¿»ÿ¥¿ÿ¥¿ƒât∞(ÄÅlâ)Y=I@à∞â=	dà∞âAI19QLà∞»‡‘¿¿∏¿∞‡‘‘¿∏¿∞ƒ‰‰‘¿∏¿∞à»¿»ÿ¥¿ÿ¥¿ƒât∞(ÄÅlâ=9MUI@à∞â-=9-à∞âA90à∞»ÿ–»ƒÃ∏‡∞¿∏¿∞»ÿ–»ƒÃ∏‡∞à»¿»ÿ¥¿ÿ¥¿»ât∞(ÄÅlâ=9MUI@à∞â-=9-à∞â%9QIMPà∞Ãƒ‹¿∏‘ÿ∞¿∏¿∞Ãƒ‹¿∏‘ÿ∞à»¿»ÿ¥¿ÿ¥¿»ât∞(ÄÅlâ)Y=I@à∞â1Å1QI=9%Là∞âM=EHÉô3É„√„√3ÉSÉ„¬###b”b”B%“¿¢≤$4ÙÂ5U$U"¬$ƒ¬Dï5E$î%UDîÙ‚‰T¬"¬%‰T¬"√SSs2„í√CCìÉ"„sb√ìì„3#ììììììììb¬###b”b”B%“¿¢≤$§4Ud4ı%"¬%DU$4TƒÚDï$R"¬$ƒƒÂD2"√ìsì2„Ç√#sS3Ç„B√cC#SR„cb¬###b”b”R%“¿¢≤$§4Ud4ı%"¬%DU$4TƒÚDï$R"¬$ƒƒÂD2"√ìÉCcí„Ç√#ìSC„í√cÉì#Ç„í¬###b”b”R%“¿¢≤$§4Ud4ı%"¬$‘Tîƒî‰r"¬%$Te$îtU$Dı2[sÉS3B„√#S2„√SÉ3É„¬###b”b”R%“¿¢≤$§4Ud4ı%"¬%Ñî‰r"¬%dïE$î‰Ñ≈2"√ì3C"„√És„√sCs"„¬###b”b”R%“¿¢≤$§4Ud4ı%"¬$ÑÙ‘RTƒT‘TÂE2"¬$TƒT5E$Ù‘T‰ı""√3ìs"„Ç√„√3ìs"„Ç¬###b”b”b%“¿¢≤$§4Ud4ı%"¬$ƒrTƒT5E$Ù‰î52"¬$ƒdDı$2"√sSc„√„√sSc„¬###b”b”r%“¿¢≤$§4Ud4ı%"¬$ÑıU4TÑÙƒB4Ù≈UDîÙÂ24"¬%$Te$îtU$DıÇP–Ä‘––‰‹∏¿∞ƒÿÃ–‰∏‘∞Ã‡ƒ–‹∏‘∞à»¿»ÿ¥¿ÿ¥¿‹ât∞(ÄÅlâ)Y=I@à∞âQ%hq=TÅE%91$Å5!%9IdÅ<Å1Qà∞âU5%=ILà∞‘»ƒ‰‘∏¿∞ƒ¿¿¿¿∏¿∞–»ƒ‰‘∏¿∞à»¿»ÿ¥¿ÿ¥¿‹ât∞(ÄÅlâ)Y=I@à∞â!=5Å159QLà∞â1QI=59=Hà∞Ã»ƒ–¿∏¿∞¿∏¿∞Ã»ƒ–¿∏¿∞à»¿»ÿ¥¿ÿ¥¿‡ât∞(ÄÅlâ=9MUI@à∞âaAIMLÅ1U,à∞âQXÅAIQLà∞Ã‡‹‰–‹Ã∏‘∞»»¿ƒ–‘¿∏‘∞ƒÿ‹‡¿»Ã∏¿∞à»¿»ÿ¥¿ÿ¥¿‡ât∞(ÄÅlâ)Y=I@à∞âM!99à∞âIU1=ILà∞Ã‹‹‘¿∏¿∞ƒƒÃ»‘∏¿∞»ÿ–»‘∏¿∞à»¿»ÿ¥¿ÿ¥ƒ¿ât∞(ÄÅlâ)Y=I@à∞â%QPà∞â1Y=ILà∞–Ã‡¿¿∏¿∞––‹¿∏¿∞Ã‰ÃÃ¿∏¿∞à»¿»ÿ¥¿ÿ¥ƒ¿ât∞(ÄÅlâ)Y=I@à∞â15<à∞â%MA9M=ILà∞»‹»»‘∏¿∞‡ƒÿ‹∏‘∞ƒ‰¿‘‹∏‘∞à»¿»ÿ¥¿ÿ¥ƒ¿ât∞(ÄÅlâ)Y=I@à∞â5%9M!9à∞â=%9Là∞Ãÿ–‡‹∏¿∞ƒ¿‰–ÿ∏ƒ∞»‘‘–¿∏‰∞à»¿»ÿ¥¿ÿ¥ƒ¿ât∞(ÄÅlâ)Y=I@à∞â!=5Å159QLà∞â1QI=59=Hà∞Ã–»‰‰∏»∞¿∏¿∞Ã–»‰‰∏»∞à»¿»ÿ¥¿ÿ¥ƒ¿ât∞(ÄÅlâ)Y=I@à∞â1Å1QI=9%Là∞â1Y=ILà∞ƒ¿‹ƒ¿¿∏¿∞¿∏¿∞ƒ¿‹ƒ¿¿∏¿∞à»¿»ÿ¥¿ÿ¥ƒƒât∞(ÄÅlâ)Y=I@à∞â-=9-à∞â5à∞ƒ‡¿‘‘‰∏»∞‰¿»‡¿∏¿∞‰¿»‹‰∏»¿¿¿¿¿¿¿¿¿ƒ∞à»¿»ÿ¥¿ÿ¥ƒƒât∞(ÄÅlâ)Y=I@à∞â-=9-à∞â%9QIMPà∞»ƒÿÿ∏‹ƒ∞¿∏¿∞»ƒÿÿ∏‹ƒ∞à»¿»ÿ¥¿ÿ¥ƒƒât∞(ÄÅlâ)Y=I@à∞âM%U9Là∞â119QLà∞‘»¿‡¿∏¿∞ƒ‘ÿ»–∏¿∞Ãÿ–‘ÿ∏¿∞à»¿»ÿ¥¿ÿ¥ƒ‘ât∞(ÄÅlâ)Y=I@à∞â=5Aq‘¿¡ê≈q‘¿¡çëÅ!UIE Ä–0ï‡Ã‡∏ÃÃ∞ƒ»‡‘ƒ∏‘∞»‰‰‡ÿ∏‡Ã∞à»¿»ÿ¥¿ÿ¥ƒ‘ât∞(ÄÅlâ)Y=I@à∞â=5Aq‘¿¡ê≈q‘¿¡çëÅ!U1Ià∞â119QLà∞ƒ‘ƒÿÃƒ∏»‡∞–‘–‡‰∏Ã‡∞ƒ¿ÿƒ–ƒ∏‰∞à»¿»ÿ¥¿ÿ¥ƒ‘ât∞(ÄÅlâ)Y=I@à∞â=5Aq‘¿¡ê≈q‘¿¡çëÅ!U1Ià∞â119QLà∞»¿ÃÃ‡‰∏–∞ÿƒ¿ƒÿ∏‡»∞ƒ–»Ã‹»∏‘‡∞à»¿»ÿ¥¿ÿ¥ƒ‘ât∞(ÄÅlâ)Y=I@à∞â1=9M=9à∞âY9Q%1=ILà∞»‘Ã‹ÿ∏–∞‹ÿƒ»∏‰»∞ƒ‹‹ÿÃ∏–‡¿¿¿¿¿¿¿¿¿Ã∞à»¿»ÿ¥¿ÿ¥ƒ‘ât∞(ÄÅlâ)Y=I@à∞â!=5Å159QLà∞â1QI=59=Hà∞»‹‘‘¿∏‘∞¿∏¿∞»‹‘‘¿∏‘∞à»¿»ÿ¥¿ÿ¥ƒÿât∞(ÄÅlâ)Y=I@à∞â1Å1QI=9%Là∞âII%I=E Ä»d‰ ‰¿¿∏¿∞¿∏¿∞Ã»‰¿¿∏¿∞à»¿»ÿ¥¿ÿ¥ƒ‹ât∞(ÄÅlâQ==5=Q<à∞â10Å%MQI%	UQ%=8Å5à∞â5à∞ƒ‡Ãÿ‰‘∏––∞ƒ¿ÿ‹¿‰∏‹Ã‰‰‰‰‰‰‰‰‰∞‹ÿ‰‡‘∏‹¿¿¿¿¿¿¿¿¿ƒ∞à»¿»ÿ¥¿ÿ¥ƒ‡ât∞(ÄÅlâ)Y=I@à∞â5%9Tà∞âAI19QLà∞‘–‰‹–∏‰‡∞ƒ‹¿–‹∏ƒƒ∞Ã‹‰»‹∏‡‹∞à»¿»ÿ¥¿ÿ¥»¿ât∞(ÄÅlâ)Y=I@à∞â1Å1QI=9%Là∞âII%I=Ià ∆–¿¿¿∏¿∞¿∏¿∞»–¿¿¿∏¿∞à»¿»ÿ¥¿ÿ¥»»ât∞(ÄÅlâ)Y=I@à∞â	ïÕ–Å°Ω•çîÅ%π—ï…πÖ—•ΩπÖ∞ÅQ…ÖëîÅº∏Å1—ê∏à∞â119QLà∞ƒÃƒ»Ã‘∏‘–∞¿∏¿∞ƒÃƒ»Ã‘∏‘–∞à»¿»ÿ¥¿ÿ¥»»ât∞(ÄÅlâ)Y=I@à∞â	ïÕ–Å°Ω•çîÅ%π—ï…πÖ—•ΩπÖ∞ÅQ…ÖëîÅº∏Å1—ê∏à∞â119QLà∞‘‹¿‰‡∏ƒ‘∞¿∏¿∞‘‹¿‰‡∏ƒ‘∞à»¿»ÿ¥¿ÿ¥»–ât∞(ÄÅlâ)Y=I@à∞âQ%i!=TÅU99ÅA1MQ%Å=∏∞Å1Qà∞âM5	I=ILÄºÅU5%=IàHƒ¬‰‰‘∏¿∞‘Ã‡ÿ∏‘∞ƒ»ÿ¿‡∏‘∞à»¿»ÿ¥¿ÿ¥»–ât∞(ÄÅlâ)Y=I@à∞â-U5!<à∞â119QLà∞–»Ãÿ¿∏‡∞¿∏¿∞–»Ãÿ¿∏‡∞à»¿»ÿ¥¿ÿ¥»ÿât∞(ÄÅlâ)Y=I@à∞â!=UM!=1ÅM=1UQ%=9LÅMà∞â%MA9M=HÅÅUà∞Ãÿ‹‰»∏¿∞ƒƒ¿Ã‡∏¿∞»‘‹‘–∏¿∞à»¿»ÿ¥¿ÿ¥»‡ât∞(ÄÅlâ)Y=I@à∞âa%9à∞âMà∞»Ã‰‡‡∏¿∞–‡¿¿∏¿∞ƒ‰ƒ‡‡∏¿∞à»¿»ÿ¥¿ÿ¥»‰ât)tÏ)çΩπÕ–Åô±’©ΩLı}çÕIÖ‹πµÖ¿†°mïµ¿±¡…Ωÿ±µï…å±Ÿ–±Öπ–±ŸÖ∞±ë—t§Ù¯°Ìïµ¿±¡…Ωÿ±µï…å±Ÿ–±Öπ–±ŸÖ∞±ŸêÈê°ë–•Ù§§Ï()çΩπÕ–Åô±’©ΩHımÌïµ¿ËâI%5A=IPà±¡…ΩÿËâ=]9Ae59QLà±µï…åËâ9Q%%A<à±Ÿ–Ë¿∏¿±Öπ–Ë¿∏¿±ŸÖ∞ËÃ‘¿¿¿¿∏¿±ŸêÈê†ú»¿»ÿ¥¿ÿ¥¿ƒú•ıtÏ()çΩπÕ–Å}ÖÕIÖ‹ıl(ÄÅlâMM5	1dà∞â=]9Ae59QLà∞â9Q%%A<à∞¿∏¿∞¿∏¿∞–‘¿¿¿¿∏¿∞à»¿»ÿ¥¿ÿ¥¿ƒât∞(ÄÅlâMM5	1dà∞â!=9E%9Å5=Q=I!Å%5A=IPÅ9ÅaA=IPÅ<∏∞Å1Qà∞âd»‘¿ÅM=IA%=8à∞ƒ¿»ƒÃÿ∏¿∞Ã¿¿¿¿∏¿∞‹»ƒÃÿ∏¿∞à»¿»ÿ¥¿ÿ¥¿–ât∞(ÄÅlâMM5	1dà∞â!=9E%9Å5=Q=I!Å%5A=IPÅ9ÅaA=IPÅ<∏∞Å1Qà∞âdÃ¿¿ÅQ--8Å%M=YIdà∞ƒÿ¿–ÿ–∏¿∞–ÿ¿¿¿∏¿∞ƒƒ––ÿ–∏¿∞à»¿»ÿ¥¿ÿ¥¿–ât∞(ÄÅlâMM5	1dà∞â°Ωπù≈•πúÅ1•ôÖ∏Å%πë’Õ—…‰Ä°…Ω’¿§Å%µ¿∏ÄòÅ·¿∏Åº∏∞Å1—ê∏à∞âdƒ‡¿Å]=I-=Ià∞ƒ‡Ã‘–¿∏¿∞‘‘¿ÿ»∏¿∞ƒ»‡–‹‡∏¿∞à»¿»ÿ¥¿ÿ¥¿ÿât∞(ÄÅlâMM5	1dà∞âM9<Å1%5%Qà∞âdƒ»‘ÅQ9Dà∞ÿ¿ÿ¿»∏¿∞»¿¿¿¿∏¿∞–¿ÿ¿»∏¿∞à»¿»ÿ¥¿ÿ¥ƒ¿ât∞(ÄÅlâMM5	1dà∞â!=9E%9Å5%9Å%9∏Å9ÅQI%9Å<∏∞Å1Q∏à∞âdƒ‘¿Åe95%ÅAI<à∞‰‡‹‡–∏¿∞»‰ÿÃ‘∏»∞ÿ‰ƒ–‡∏‡∞à»¿»ÿ¥¿ÿ¥ƒ¿ât∞(ÄÅlâMM5	1dà∞â!=9E%9Å5%9Å%9∏Å9ÅQI%9Å<∏∞Å1Q∏à∞âd»¿¿Å1Åhà∞‡ƒ–ÿÿ∏¿∞»––Ã‰∏‡∞‘‹¿»ÿ∏»∞à»¿»ÿ¥¿ÿ¥ƒ¿ât∞(ÄÅlâMM5	1dà∞â)%958ÅM=91%9,Å5=Q=Ie1Å<∏∞Å1Q∏à∞âdƒ‘¿ÅIUI<à∞‡ÿ‹¿¿∏¿∞»¿¿¿¿∏¿∞ÿÿ‹¿¿∏¿∞à»¿»ÿ¥¿ÿ¥ƒƒât∞(ÄÅlâMM5	1dà∞â1%9adÅ5=Q=HÅ%9QI9Q%=90Å<∏∞Å1%5%Qà∞âd»¿¿ÅII=\à∞ƒ¿–‘»¿∏¿∞ÃƒÃ‘ÿ∏¿∞‹Ãƒÿ–∏¿∞à»¿»ÿ¥¿ÿ¥ƒÃât∞(ÄÅlâMM5	1dà∞â1%9a$Å5=Q=HÅ%9QI9Q%=90Å<∏∞Å1%5%Qà∞âd»¿¿Å]%9ÅY<Å%$à∞ƒ‰Ã‰‘»∏¿∞‘‡ƒ‡‘∏¿∞ƒÃ‘‹ÿ‹∏¿∞à»¿»ÿ¥¿ÿ¥ƒÃât∞(ÄÅlâMM5	1dà∞â!=9E%9Å5=Q=I!Å%5A=IPÅ9ÅaA=IPÅ<∏∞Å1Qà∞âd»¿¿ÅM=IA%=8à∞ƒ‹‘‡‰ƒ∏¿∞‘»¿¿¿∏¿∞ƒ»Ã‡‰ƒ∏¿∞à»¿»ÿ¥¿ÿ¥ƒÿât∞(ÄÅlâMM5	1dà∞â]Ua$ÅHT5BDRÑ‰ÙƒÙuí4Ú‚ƒ≈DB"¬$Eì3su”%""√3É#„√CCb„√ìccB„¬###b”b”#%“¿¢≤$54T‘$≈í"¬$§î‰t‘T‚4Ù‰ƒî‰≤‘ıDı$5î4ƒR4Ú‚¬≈DB‚"¬$Eì#StÙƒb"√ccB„√#„√ÉccB„¬###b”b”#%“¿¢≤$54T‘$≈í"¬$§î‰t‘T‚4Ù‰ƒî‰≤‘ıDı$5î4ƒR4Ú‚¬≈DB‚"¬$Eì#5%T4U$Ú"√ì3ì"„√#„√s3ì"„¬###b”b”#%“¿¢≤$54T‘$≈í"¬$§î‰t‘T‚4Ù‰ƒî‰≤‘ıDı$5î4ƒR4Ú‚¬≈DB‚"¬$EìStı$¥dı$4R"√#scì"„√c„√#cì"„¬###b”b”#%“¿¢≤$54T‘$≈í"¬$4ÑÙ‰uî‰r‘ıDı$ÑTBî’ı%B‰BUÖı%B4Ú‚¬≈DB"¬$Eì#44ı%îÙ‚"√sÉÉ„√S#„√#cÉ„¬###b”b”#b%“¿¢≤$54T‘$≈í"¬$4ÑÙ‰uî‰r‘ıDı$ÑTBî’ıP`$AETAPR
-ART@APAH, LTD "DY24ÄSCORPAO9A 1
-XNMLååMŒMLåååçãLãLçàóKà»êT‘—SPìHãê“”ë‘RSë»“êS»S’‘ê÷P”H”»àãëLÃUëTëT’ãNLåMÃçåLÃÃMãåååçãLãLçàóKà»êT‘—SPìHãê“”ë‘RSë»T’ì”êUUP»êT“SàS’‘ê÷P”HPSïQêP’TíSë»”ÀããëLå“Tí»ãÃåÃLéNMååÀåMåéÀéMŒNNNNNNNNMãååçãLãLç»óKà»êT‘—SPìHãê“”ë‘RSë»RSëëàSëàSëêQSë»”ÀãàãëLåPQ”HàãNLéåçMŒçMÃÕKçãååçãLãLéHóKà»êT‘—SPìHãííPSë‘’HQS»S’‘ê÷P”Hãê—àL‘àãåŒLåååÕÃåMMLÃåååçãLãLÃóBóN¬ò€€ú›õZõ–TœWÿ\‘ò]ÀõX\
+    {d:d('2026-08-22'),cap:81910.66,int:4259.7,cuota:86170.36,est:'PENDIENTE'},
+    {d:d('2026-09-22'),cap:82832.79,int:3337.57,cuota:86170.36,est:'PENDIENTE'},
+    {d:d('2026-10-22'),cap:83142.22,int:3028.14,cuota:86170.36,est:'PENDIENTE'},
+    {d:d('2026-11-22'),cap:83394.85,int:2775.51,cuota:86170.36,est:'PENDIENTE'},
+    {d:d('2026-12-22'),cap:84068.21,int:2102.15,cuota:86170.36,est:'PENDIENTE'},
+    {d:d('2027-01-22'),cap:84368.44,int:1801.92,cuota:86170.36,est:'PENDIENTE'},
+    {d:d('2027-02-22'),cap:84815.24,int:1355.12,cuota:86170.36,est:'PENDIENTE'},
+    {d:d('2027-03-22'),cap:85352.08,int:818.28,cuota:86170.36,est:'PENDIENTE'},
+    {d:d('2027-04-22'),cap:85716.41,int:453.94,cuota:86170.35,est:'PENDIENTE'}
+  ]},
+  {id:'ta2',emp:'FULLMOTOS',ban:"PRODUBANCO",monto:500000.0,tasa:'6.25%',vctoLabel:'May 2027',clr:'var(--full,#f59e0b)',data:[
+    {d:d('2026-06-08'),cap:40272.42,int:2864.58,cuota:43137.0,est:'CANCELADO'},
+    {d:d('2026-07-06'),cap:40742.59,int:2394.41,cuota:43137.0,est:'PENDIENTE'},
+    {d:d('2026-08-11'),cap:40663.82,int:2473.18,cuota:43137.0,est:'PENDIENTE'},
+    {d:d('2026-09-08'),cap:41297.94,int:1839.06,cuota:43137.0,est:'PENDIENTE'},
+    {d:d('2026-10-08'),cap:41381.67,int:1755.33,cuota:43137.0,est:'PENDIENTE'},
+    {d:d('2026-11-09'),cap:41494.55,int:1642.45,cuota:43137.0,est:'PENDIENTE'},
+    {d:d('2026-12-08'),cap:41857.44,int:1279.56,cuota:43137.0,est:'PENDIENTE'},
+    {d:d('2027-01-08'),cap:41994.47,int:1142.53,cuota:43137.0,est:'PENDIENTE'},
+    {d:d('2027-02-10'),cap:42161.35,int:975.65,cuota:43137.0,est:'PENDIENTE'},
+    {d:d('2027-03-08'),cap:42558.62,int:578.38,cuota:43137.0,est:'PENDIENTE'},
+    {d:d('2027-04-08'),cap:42676.44,int:460.56,cuota:43137.0,est:'PENDIENTE'},
+    {d:d('2027-05-10'),cap:42898.69,int:238.33,cuota:43137.020000000004,est:'PENDIENTE'}
+  ]},
+  {id:'ta3',emp:'ASSEMBLY',ban:"PRODUBANCO",monto:100000.0,tasa:'6.25%',vctoLabel:'Jun 2027',clr:'var(--assm,#10b981)',data:[
+    {d:d('2026-06-08'),cap:8051.75,int:572.92,cuota:8624.67,est:'CANCELADO'},
+    {d:d('2026-07-06'),cap:8177.7,int:446.97,cuota:8624.67,est:'PENDIENTE'},
+    {d:d('2026-08-06'),cap:8173.82,int:450.85,cuota:8624.67,est:'PENDIENTE'},
+    {d:d('2026-09-07'),cap:8204.69,int:419.98,cuota:8624.67,est:'PENDIENTE'},
+    {d:d('2026-10-06'),cap:8285.37,int:339.3,cuota:8624.67,est:'PENDIENTE'},
+    {d:d('2026-11-06'),cap:8306.56,int:318.11,cuota:8624.67,est:'PENDIENTE'},
+    {d:d('2026-12-07'),cap:8351.27,int:273.4,cuota:8624.67,est:'PENDIENTE'},
+    {d:d('2027-01-06'),cap:8403.58,int:221.09,cuota:8624.67,est:'PENDIENTE'},
+    {d:d('2027-02-10'),cap:8417.8,int:206.87,cuota:8624.67,est:'PENDIENTE'},
+    {d:d('2027-03-08'),cap:8508.99,int:115.68,cuota:8624.67,est:'PENDIENTE'},
+    {d:d('2027-04-06'),cap:8538.48,int:86.19,cuota:8624.67,est:'PENDIENTE'},
+    {d:d('2027-05-06'),cap:8579.99,int:44.69,cuota:8624.68,est:'PENDIENTE'}
+  ]},
+  {id:'ta4',emp:'JCEVCORP',ban:"PRODUBANCO",monto:1000000.0,tasa:'6.00%',vctoLabel:'Jun 2027',clr:'#a78bfa',data:[
+    {d:d('2026-07-03'),cap:80811.29,int:5333.33,cuota:86144.62,est:'PENDIENTE'},
+    {d:d('2026-08-03'),cap:81395.48,int:4749.14,cuota:86144.62,est:'PENDIENTE'},
+    {d:d('2026-09-03'),cap:81816.02,int:4328.6,cuota:86144.62000000001,est:'PENDIENTE'},
+    {d:d('2026-10-05'),cap:82112.74,int:4031.88,cuota:86144.62000000001,est:'PENDIENTE'},
+    {d:d('2026-11-04'),cap:82775.3,int:3368.32,cuota:86143.62000000001,est:'PENDIENTE'},
+    {d:d('2026-12-03'),cap:83287.69,int:2856.93,cuota:86144.62,est:'PENDIENTE'},
+    {d:d('2027-01-04'),cap:83436.35,int:2708.27,cuota:86144.62000000001,est:'PENDIENTE'},
+    {d:d('2027-02-03'),cap:84022.79,int:2121.83,cuota:86144.62,est:'PENDIENTE'},
+    {d:d('2027-03-03'),cap:84556.36,int:1588.26,cuota:86144.62,est:'PENDIENTE'},
+    {d:d('2027-04-05'),cap:84737.8,int:1406.82,cuota:86144.62000000001,est:'PENDIENTE'},
+    {d:d('2027-05-03'),cap:85346.4,int:798.22,cuota:86144.62,est:'PENDIENTE'},
+    {d:d('2027-06-03'),cap:85701.78,int:442.79,cuota:86144.56999999999,est:'PENDIENTE'}
+  ]}
+];
 
-Ÿ[\õ›ãY\òÀù[ùò[JOOäŸ[\õ›ãY\òÀù[ùò[ôô
-
-_JJN¬ÇãÀ»8•d8•d8•d‘íH»∞‰”RSêH»ì’ëQQ‘ëT»8•d8•d8•dò€€ú›‹öQ]OV¬àŸ[\àêT‘—SPìHãò[åÕLåôô
-	ÃåçãLãLLI _KàŸ[\àíê—Uê”‘îãò[çåååôô
-	ÃåçãLãLLI _KàŸ[\àê‘ëQST‘ïãò[ééLKåôô
-	ÃåçãLãLMâ _KàŸ[\àëïSS’‘»ãò[çÕéåôô
-	ÃåçãLãLMâ _BóN¬ò€€ú›õ€Z[òQ]OV¬àŸ[\àêT‘—SPìHãò[åLÕMKåôô
-	ÃåçãLãLMI _KàŸ[\àêT‘—SPìHãò[ååŒMÀåôô
-	ÃåçãLãLÃ	 _KàŸ[\àíê—Uê”‘îãò[åŒååôô
-	ÃåçãLãLMI _KàŸ[\àíê—Uê”‘îãò[éMLÃåôô
-	ÃåçãLãLÃ	 _KàŸ[\àê‘ëQST‘ïãò[åMKåôô
-	ÃåçãLãLMI _KàŸ[\àê‘ëQST‘ïãò[åÃMçNKåôô
-	ÃåçãLãLÃ	 _KàŸ[\àìS”ïVàãò[éLåôô
-	ÃåçãLãLMI _KàŸ[\àìS”ïVàãò[åLåÕLåôô
-	ÃåçãLãLÃ	 _KàŸ[\àï—”S’»ãò[çLåNKåôô
-	ÃåçãLãLMI _KàŸ[\àï—”S’»ãò[çÕÀåôô
-	ÃåçãLãLÃ	 _KàŸ[\àê””î’TëTãò[åMLåôô
-	ÃåçãLãLMI _KàŸ[\àê””î’TëTãò[åMçLåôô
-	ÃåçãLãLÃ	 _BóN¬ò€€ú›õ›ë]OV¬àŸ[\àêT‘—SPìHãò[ååååôô
-	ÃåçãLãLMI _KàŸ[\àíê—Uê”‘îãò[åÕLåôô
-	ÃåçãLãLMI _KàŸ[\àê‘ëQST‘ïãò[çååôô
-	ÃåçãLãLMI _KàŸ[\àëïSS’‘»ãò[åMLåôô
-	ÃåçãLãLMI _KàŸ[\àê””î’TëTãò[åååôô
-	ÃåçãLãLMI _BóN¬ÇãÀ»8•d8•d8•dëSëTéà‘\»	àSTïT»8•d8•d8•dôù[ò›[€à[ö]]J
-^¬àÿ›[Y[ùôŸ][[Y[ùûRY
-	‹ÿã]Ÿ^I Kù^€€ù[ùR÷Kù”ÿÿ[Q]T›ö[ô 	Ÿ\ÀQP…À›ŸYZŸ^Nâ€€ô…À^Nâ€ù[Y\öX…À[€ùâ€€ô…ÀYX\éâ€ù[Y\öX…ﬂJN¬üBôù[ò›[€à[ö]‘\ 
-^¬à€€ú›ÿ\[ÿõò]ÀúôYXŸJ
-ÀäOOú ‹ãòÿ\
-N¬àÿ›[Y[ùôŸ][[Y[ùûRY
-	⁄ÀXÿ\	 Kù^€€ù[ùYïT—
-ÿ\ùYJN¬àÿ›[Y[ùôŸ][[Y[ùûRY
-	⁄ÀXÿ\\… Kù^€€ù[ù[ÿõò]Àõ[ô›
-…»‹\òX⁄[€ô\»X›]ò\…Œ¬à€€ú›Ã[ÿõò]Àôö[\äèOôX\ ãùô
-HOO[ù[	âôX\ ãùô
-OèL	âôX\ ãùô
-OLÃ
-N¬à€€ú›L[ÿõò]Àôö[\äèOôX\ ãùô
-HOO[ù[	âôX\ ãùô
-OåÃ	âôX\ ãùô
-ONL
-N¬àÿ›[Y[ùôŸ][[Y[ùûRY
-	⁄ÃÃâ Kù^€€ù[ùYÃõ[ô›ŸïT—
-ÃúôYXŸJ
-ÀäOOú ‹ãòÿ\
-KùYJNâ…	Œ¬àÿ›[Y[ùôŸ][[Y[ùûRY
-	⁄ÃÃ… Kù^€€ù[ùYÃõ[ô›
-…»‹\òX⁄[€ô\…Œ¬àÿ›[Y[ùôŸ][[Y[ùûRY
-	⁄ŒLâ Kù^€€ù[ùYLõ[ô›ŸïT—
-LúôYXŸJ
-ÀäOOú ‹ãòÿ\
-KùYJNâ…	Œ¬àÿ›[Y[ùôŸ][[Y[ùûRY
-	⁄ŒL… Kù^€€ù[ùYLõ[ô›
-…»‹\òX⁄[€ô\…Œ¬à€€ú›T[ô]P€€ôöYÀúôYXŸJ
-À
-OOú ›ô]Kôö[\äèOúãô\›OOI‘SëQSïI Kõ[ô›
-N¬àÿ›[Y[ùôŸ][[Y[ùûRY
-	⁄’I Kù^€€ù[ù]T[ô¬à€€ú›ÿ\éLYÿ\îò]Àôö[\äèOúãùô	âôX\ ãùô
-OèL	âôX\ ãùô
-ONL
-Kõ[ô›¬àÿ›[Y[ùôŸ][[Y[ùûRY
-	Ÿÿ\ãNL	 Kù^€€ù[ùYÿ\éL	Ã	Œ¬à€€ú›ÃYÃõ[ô›åÿ$Â-	ŸÃõ[ô›Hô[òŸH8¢iÃâ…Œ¬àYäÃ
-^Ÿÿ›[Y[ùôŸ][[Y[ùûRY
-	›ã]\ôŸ[ù	 Kù^€€ù[ùYÃŸÿ›[Y[ùôŸ][[Y[ùûRY
-	›ã]\ôŸ[ù	 Kú›[Kô\‹^OI…ŒﬂBàÿ›[Y[ùôŸ][[Y[ùûRY
-	›ã]ÿ\õâ Kù^€€ù[ùX8¶®	ŸLõ[ô›Hô[òŸ[à[àL¬üBôù[ò›[€à[ö][\ù\ 
-^¬à][I…Œ¬àÿõò]Àôö[\äèOôX\ ãùô
-HOO[ù[	âôX\ ãùô
-OèL	âôX\ ãùô
-OLÃ
-Kôõ‹ëXX⁄
-èOû¬à[
-œX]à€\‹œHò[\ù[\ù\ôYèè]à€\‹œHò[\ùY›èèŸ]èè]èè›õ€ôœïTë—SïNè‹›õ€ôœà	‹ãô[\H8†$»	‹ãòò[üH	ŸïT—
-ãòÿ\
-_Hô[òŸH›õ€ôœâŸë
-ãùôùYJ_O‹›õ€ôœà
-	d)}d)</div></div>`;
+// ‚ïê‚ïê‚ïê GARANT√çAS ‚ïê‚ïê‚ïê
+const garRaw=[
+  {ban:'Guayaquil',  tipo:'Prenda Inventario',prop:'JCEVCORP / ASSEMBLYMOTOS',monto:1034007, vd:d('2026-07-21')},
+  {ban:'Guayaquil',  tipo:'Bien Inmueble',    prop:'Juan Carlos Espinoza',    monto:1987467, vd:d('2026-07-21')},
+  {ban:'Internacional',tipo:'Bien Inmueble',  prop:'JCEVCORP',                monto:297260,  vd:null},
+  {ban:'Internacional',tipo:'Bien Inmueble',  prop:'Juan Carlos Espinoza',    monto:263948,  vd:null},
+  {ban:'Internacional',tipo:'Prenda Inventario',prop:'ASSEMBLYMOTOS',         monto:400334,  vd:null},
+  {ban:'Internacional',tipo:'Prenda Inventario',prop:'ASSEMBLYMOTOS',         monto:735479,  vd:d('2026-10-05')},
+  {ban:'Internacional',tipo:'Prenda Inventario',prop:'ASSEMBLYMOTOS',         monto:417215,  vd:d('2027-01-05')},
+  {ban:'Internacional',tipo:'Prenda Inventario',prop:'ASSEMBLYMOTOS',         monto:947215,  vd:d('2027-02-10')},
+  {ban:'Pichincha',  tipo:'Prenda Inventario',prop:'JCEVCORP / ASSEMBLYMOTOS',monto:2000354, vd:d('2026-12-26')},
+  {ban:'Pichincha',  tipo:'Bien Inmueble',    prop:'JCEVCORP',                monto:539977,  vd:d('2026-11-05')},
+  {ban:'Pichincha',  tipo:'Bien Inmueble',    prop:'JCEVCORP',                monto:1569675, vd:d('2027-05-31')},
+  {ban:'Produbanco', tipo:'Bien Inmueble',    prop:'Juan Carlos Espinoza',    monto:765685,  vd:d('2026-12-31')},
+  {ban:'Produbanco', tipo:'Bien Inmueble',    prop:'JCEVCORP',                monto:1958303, vd:d('2026-12-31')},
+  {ban:'Produbanco', tipo:'Bien Inmueble',    prop:'FULLMOTOS',               monto:1296597, vd:d('2026-12-31')},
+].map(r=>({...r}));
+
+// ‚ïê‚ïê‚ïê FLUJOS DATA ‚ïê‚ïê‚ïê
+const _csRaw=[
+  ["JCEVCORP","DOWNPAYMENTS","ANTICIPO",0.0,0.0,450000.0,"2026-06-01"],
+  ["JCEVCORP","COBY","PARLANTES",28500.0,8550.0,19950.0,"2026-06-01"],
+  ["CONSUREP","KONKA","PANEL",264213.8,0.0,264213.8,"2026-06-02"],
+  ["CONSUREP","KONKA","INTEREST",3170.56,0.0,3170.56,"2026-06-02"],
+  ["JCEVCORP","LG ELECTRONICS","SECADORA",38580.0,0.0,38580.0,"2026-06-04"],
+  ["CONSUREP","ALL DISTRIBUTION PANEL","PANEL",551073.09,449082.76,101990.32999999996,"2026-06-04"],
+  ["JCEVCORP","TERCELO TIRE","LLANTAS",91793.8,27538.14,64255.66,"2026-06-05"],
+  ["JCEVCORP","TERCELO TIRE","LLANTAS",98469.8,29540.9,68928.9,"2026-06-05"],
+  ["JCEVCORP","MEILING","REFRIGERADORAS",78534.0,20153.0,58381.0,"2026-06-05"],
+  ["JCEVCORP","XING","VITRINA XLS",9342.0,1870.0,7472.0,"2026-06-05"],
+  ["JCEVCORP","HOME ELEMENTS","ELECTROMENOR",39172.8,0.0,39172.8,"2026-06-06"],
+  ["JCEVCORP","LG ELECTRONICS","LAVADORAS",75600.0,0.0,75600.0,"2026-06-07"],
+  ["JCEVCORP","HOUSEHOLD SOLUTIONS SA","REFRIGERADORA 215",54497.0,16349.5,38147.5,"2026-06-07"],
+  ["JCEVCORP","TAIZHOU QINLI MACHINERY CO LTD","FUMIGADORAS",52195.0,10000.0,42195.0,"2026-06-07"],
+  ["JCEVCORP","HOME ELEMENTS","ELECTROMENOR",32140.0,0.0,32140.0,"2026-06-08"],
+  ["CONSUREP","EXPRESS LUCK","TV PARTS",3879473.5,2201450.5,1678023.0,"2026-06-08"],
+  ["JCEVCORP","SHANFENG","REGULADORES",37750.0,11325.0,26425.0,"2026-06-10"],
+  ["JCEVCORP","ITT","LAVADORAS",43800.0,4470.0,39330.0,"2026-06-10"],
+  ["JCEVCORP","LAMO","DISPENSADORES",27225.0,8167.5,19057.5,"2026-06-10"],
+  ["JCEVCORP","MINSHENG","COCINAS",36487.0,10946.1,25540.9,"2026-06-10"],
+  ["JCEVCORP","HOME ELEMENTS","ELECTROMENOR",34299.2,0.0,34299.2,"2026-06-10"],
+  ["JCEVCORP","LG ELECTRONICS","LAVADORAS",107100.0,0.0,107100.0,"2026-06-11"],
+  ["JCEVCORP","KONKA","MB",180559.2,90280.0,90279.20000000001,"2026-06-11"],
+  ["JCEVCORP","KONKA","INTEREST",2166.71,0.0,2166.71,"2026-06-11"],
+  ["JCEVCORP","SICUENS","LLANTAS",52080.0,15624.0,36456.0,"2026-06-15"],
+  ["JCEVCORP","COMPA\u00d1\u00cdA HULERA","LLANTAS",42838.33,12851.5,29986.83,"2026-06-15"],
+  ["JCEVCORP","COMPA\u00d1\u00cdA HULERA","LLANTAS",151631.28,45489.38,106141.9,"2026-06-15"],
+  ["JCEVCORP","COMPA\u00d1\u00cdA HULERA","LLANTAS",203389.4,61016.82,142372.58,"2026-06-15"],
+  ["JCEVCORP","LONGSONG","VENTILADORES",25376.4,7612.92,17763.480000000003,"2026-06-15"],
+  ["JCEVCORP","HOME ELEMENTS","ELECTROMENOR",27550.5,0.0,27550.5,"2026-06-16"],
+  ["JCEVCORP","LG ELECTRONICS","REFRIGERADORA",32900.0,0.0,32900.0,"2026-06-17"],
+  ["TODOMOTO","ALL DISTRIBUTION MB","MB",183695.44,106709.73999999999,76985.70000000001,"2026-06-18"],
+  ["JCEVCORP","MINFU","PARLANTES",54974.98,17047.11,37927.87,"2026-06-20"],
+  ["JCEVCORP","LG ELECTRONICS","REFRIGERADORA",24000.0,0.0,24000.0,"2026-06-22"],
+  ["JCEVCORP","Best Choice International Trade Co. Ltd.","LLANTAS",131235.54,0.0,131235.54,"2026-06-22"],
+  ["JCEVCORP","Best Choice International Trade Co. Ltd.","LLANTAS",57098.15,0.0,57098.15,"2026-06-24"],
+  ["JCEVCORP","TAIZHOU GUANGFENG PLASTIC OC., LTD","SEMBRADORAS / FUMIGADORA",17995.0,5386.5,12608.5,"2026-06-24"],
+  ["JCEVCORP","KUMHO","LLANTAS",42360.8,0.0,42360.8,"2026-06-26"],
+  ["JCEVCORP","HOUSEHOLD SOLUTIONS SA","DISPENSADOR DE AGUA",36792.0,11038.0,25754.0,"2026-06-28"],
+  ["JCEVCORP","XING","SD",23988.0,4800.0,19188.0,"2026-06-29"]
+];
+const flujoCS=_csRaw.map(([emp,prov,merc,vt,ant,val,dt])=>({emp,prov,merc,vt,ant,val,vd:d(dt)}));
+
+const flujoCR=[{emp:"CREDIMPORT",prov:"DOWNPAYMENTS",merc:"ANTICIPO",vt:0.0,ant:0.0,val:350000.0,vd:d('2026-06-01')}];
+
+const _asRaw=[
+  ["ASSEMBLY","DOWNPAYMENTS","ANTICIPO",0.0,0.0,450000.0,"2026-06-01"],
+  ["ASSEMBLY","CHONGQING MOTORHEAD IMPORT AND EXPORT CO., LTD","DY250 SCORPION",102136.0,30000.0,72136.0,"2026-06-04"],
+  ["ASSEMBLY","CHONGQING MOTORHEAD IMPORT AND EXPORT CO., LTD","DY300 TEKKEN DISCOVERY",160464.0,46000.0,114464.0,"2026-06-04"],
+  ["ASSEMBLY","Chongqing Lifan Industry (Group) Imp. & Exp. Co., Ltd.","DY180 WORKFORCE",183540.0,55062.0,128478.0,"2026-06-06"],
+  ["ASSEMBLY","SENGO LIMITED","DY125 TANQ",60602.0,20000.0,40602.0,"2026-06-10"],
+  ["ASSEMBLY","CHONGQING MINFF IND. AND TRADING CO., LTD.","DY150 DYNAMIC PRO",98784.0,29635.2,69148.8,"2026-06-10"],
+  ["ASSEMBLY","CHONGQING MINFF IND. AND TRADING CO., LTD.","DY200 EAGLE Z",81466.0,24439.8,57026.2,"2026-06-10"],
+  ["ASSEMBLY","JIANGMEN SONLINK MOTORCYCLE CO., LTD.","DY150 CRUCERO",86700.0,20000.0,66700.0,"2026-06-11"],
+  ["ASSEMBLY","LINXI MOTOR INTERNATIONAL CO., LIMITED","DY200 ARROW",104520.0,31356.0,73164.0,"2026-06-13"],
+  ["ASSEMBLY","LINXI MOTOR INTERNATIONAL CO., LIMITED","DY200 WING EVO II",193952.0,58185.0,135767.0,"2026-06-13"],
+  ["ASSEMBLY","CHONGQING MOTORHEAD IMPORT AND EXPORT CO., LTD","DY200 SCORPION",175891.0,52000.0,123891.0,"2026-06-16"],
+  ["ASSEMBLY","WUXI EAST TECHNOLOGY CO.,LTD","DY370 GP-1 RR",138020.0,41406.0,96614.0,"2026-06-20"],
+  ["ASSEMBLY","JIANGMEN SONLINK MOTORCYCLE CO., LTD.","DY250 WOLF",106604.0,20000.0,86604.0,"2026-06-21"],
+  ["ASSEMBLY","JIANGMEN SONLINK MOTORCYCLE CO., LTD.","DY200 CRUCERO",91392.0,20000.0,71392.0,"2026-06-21"],
+  ["ASSEMBLY","JIANGMEN SONLINK MOTORCYCLE CO., LTD.","DY150 WORKFORCE",276192.0,60000.0,216192.0,"2026-06-21"],
+  ["ASSEMBLY","CHONGQING MOTORHEAD IMPORT AND EXPORT CO., LTD","DY200 SCORPION",178800.0,52000.0,126800.0,"2026-06-26"],
+  ["ASSEMBLY","CHONGQING MOTORHEAD IMPORT AND EXPORT CO., LTD","DY250 SCORPION",97950.0,0.0,97950.0,"2026-06-26"],
+  ["ASSEMBLY","CHONGQING XGJAO MOTORCYCLE CO LTD.","DY300 EVEREST",190080.0,57024.0,133056.0,"2026-06-26"],
+  ["ASSEMBLY","CHONGQING ASTRONAUTIC BASHAN MOTORCYCLE MANUFACTURING CO., LTD","DY200 SHARK",72310.98,16023.0,56287.979999999996,"2026-06-27"],
+  ["ASSEMBLY","CHONGQING MINFF IND. AND TRADING CO., LTD.","DY200 EAGLE Z",81928.0,24578.4,57349.6,"2026-06-29"],
+  ["ASSEMBLY","JIANGSU DAELG MOTORCYCLE","CF 450 SR",207900.0,62370.0,145530.0,"2026-06-30"]
+];
+const flujoAS=_asRaw.map(([emp,prov,merc,vt,ant,val,dt])=>({emp,prov,merc,vt,ant,val,vd:d(dt)}));
+
+// ‚ïê‚ïê‚ïê SRI / N√ìMINA / PROVEEDORES ‚ïê‚ïê‚ïê
+const sriData=[
+  {emp:"ASSEMBLY",val:350000.0,vd:d('2026-06-11')},
+  {emp:"JCEVCORP",val:620000.0,vd:d('2026-06-11')},
+  {emp:"CREDIMPORT",val:8291.0,vd:d('2026-06-16')},
+  {emp:"FULLMOTOS",val:74828.0,vd:d('2026-06-16')}
+];
+const nominaData=[
+  {emp:"ASSEMBLY",val:13545.0,vd:d('2026-06-15')},
+  {emp:"ASSEMBLY",val:20797.0,vd:d('2026-06-30')},
+  {emp:"JCEVCORP",val:38200.0,vd:d('2026-06-15')},
+  {emp:"JCEVCORP",val:95300.0,vd:d('2026-06-30')},
+  {emp:"CREDIMPORT",val:14041.0,vd:d('2026-06-15')},
+  {emp:"CREDIMPORT",val:31659.0,vd:d('2026-06-30')},
+  {emp:"MONTAZ",val:8100.0,vd:d('2026-06-15')},
+  {emp:"MONTAZ",val:12350.0,vd:d('2026-06-30')},
+  {emp:"TODOMOTO",val:5219.0,vd:d('2026-06-15')},
+  {emp:"TODOMOTO",val:7487.0,vd:d('2026-06-30')},
+  {emp:"CONSUREP",val:14100.0,vd:d('2026-06-15')},
+  {emp:"CONSUREP",val:16500.0,vd:d('2026-06-30')}
+];
+const provData=[
+  {emp:"ASSEMBLY",val:220000.0,vd:d('2026-06-15')},
+  {emp:"JCEVCORP",val:350000.0,vd:d('2026-06-15')},
+  {emp:"CREDIMPORT",val:60000.0,vd:d('2026-06-15')},
+  {emp:"FULLMOTOS",val:150000.0,vd:d('2026-06-15')},
+  {emp:"CONSUREP",val:20000.0,vd:d('2026-06-15')}
+];
+
+// ‚ïê‚ïê‚ïê RENDER: KPIs & ALERTAS ‚ïê‚ïê‚ïê
+function initDate(){
+  document.getElementById('sb-today').textContent=HOY.toLocaleDateString('es-EC',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
+}
+function initKPIs(){
+  const cap=oblRaw.reduce((s,r)=>s+r.cap,0);
+  document.getElementById('k-cap').textContent=fUSD(cap,true);
+  document.getElementById('k-cap-s').textContent=oblRaw.length+' operaciones activas';
+  const d30=oblRaw.filter(r=>dias(r.vd)!==null&&dias(r.vd)>=0&&dias(r.vd)<=30);
+  const d90=oblRaw.filter(r=>dias(r.vd)!==null&&dias(r.vd)>30&&dias(r.vd)<=90);
+  document.getElementById('k30v').textContent=d30.length?fUSD(d30.reduce((s,r)=>s+r.cap,0),true):'$0';
+  document.getElementById('k30s').textContent=d30.length+' operaciones';
+  document.getElementById('k90v').textContent=d90.length?fUSD(d90.reduce((s,r)=>s+r.cap,0),true):'$0';
+  document.getElementById('k90s').textContent=d90.length+' operaciones';
+  const taPend=taConfig.reduce((s,t)=>s+t.data.filter(r=>r.est==='PENDIENTE').length,0);
+  document.getElementById('kTA').textContent=taPend;
+  const gar90=garRaw.filter(r=>r.vd&&dias(r.vd)>=0&&dias(r.vd)<=90).length;
+  document.getElementById('gar-90').textContent=gar90||'0';
+  const d30t=d30.length>0?`üî¥ ${d30.length} vence ‚â§30d`:'';
+  if(d30t){document.getElementById('tb-urgent').textContent=d30t;document.getElementById('tb-urgent').style.display='';}
+  document.getElementById('tb-warn').textContent=`‚ö† ${d90.length} vencen en 90d`;
+}
+function initAlertas(){
+  let html='';
+  oblRaw.filter(r=>dias(r.vd)!==null&&dias(r.vd)>=0&&dias(r.vd)<=30).forEach(r=>{
+    html+=`<div class="alert alert-red"><div class="alert-dot"></div><div><strong>URGENTE:</strong> ${r.emp} ‚Äì ${r.ban} ${fUSD(r.cap)} vence <strong>${fD(r.vd,true)}</strong> (${dias(r.vd)}d)</div></div>`;
   });
   oblRaw.filter(r=>dias(r.vd)!==null&&dias(r.vd)>30&&dias(r.vd)<=90).forEach(r=>{
     html+=`<div class="alert alert-yellow"><div class="alert-dot"></div><div>${r.emp} ‚Äì ${r.ban} ${fUSD(r.cap)} vence <strong>${fD(r.vd,true)}</strong> (${dias(r.vd)}d)</div></div>`;
@@ -636,7 +756,7 @@ function renderFlujos(){
     <td>${pillD(r.vd,null)}<span style="font-family:'DM Mono',monospace;font-size:11px;color:var(--text3);margin-left:6px">${fD(r.vd,true)}</span></td>
   </tr>`).join('');
   const tV=data.reduce((s,r)=>s+r.val,0),tT=data.reduce((s,r)=>s+r.vt,0);
-  document.getElementById('tot-flujo').innerHTML<`<span>${data.length} registros</span><span>Valor Total: <strong>${fUSD(tT)}</strong></span><span>Pendiente: <strong>${fUSD(tV)}</strong></span>`;
+  document.getElementById('tot-flujo').innerHTML=`<span>${data.length} registros</span><span>Valor Total: <strong>${fUSD(tT)}</strong></span><span>Pendiente: <strong>${fUSD(tV)}</strong></span>`;
 }
 
 // ‚ïê‚ïê‚ïê RENDER: SRI & N√ìMINA ‚ïê‚ïê‚ïê
@@ -717,7 +837,7 @@ function renderCal(){
         <div class="cal-body">
           ${etag(r.emp)}
           <span style="color:var(--text2);font-size:12px;max-width:220px;overflow:hidden;text-overflow:ellipsis" title="${r.desc}">${r.desc.length>36?r.desc.slice(0,36)+'‚Ä¶':r.desc}</span>
-          <span class="pill ${tipoCls[r.tipo]}|'pgr'}" style="font-size:9.5px">${tipoLbl[r.tipo]||r.tipo}</span>
+          <span class="pill ${tipoCls[r.tipo]||'pgr'}" style="font-size:9.5px">${tipoLbl[r.tipo]||r.tipo}</span>
         </div>
         ${r.val>0?`<div class="cal-amt"><div class="cal-amt-v">${fUSD(r.val)}</div></div>`:''}
       </div>`).join('')}
@@ -885,11 +1005,47 @@ function parseAndUpdate(results){
 }
 
 // ‚ïê‚ïê‚ïê ACTUALIZAR ‚ïê‚ïê‚ïê
-async function doActualizar(){
-  const app=await getMSAL();
-  const acc=app.getActiveAccount();
-  if(acc){await loadFromOneDrive();}
-  else{refreshAll();toast('Datos hardcoded actualizados','ok');}
+function doActualizar(){
+  // Open file picker to load Excel
+  document.getElementById('excel-upload-input').click();
+}
+
+function handleExcelUpload(event){
+  const file = event.target.files[0];
+  if(!file) return;
+  const btn = document.getElementById('btn-act');
+  btn.classList.add('loading');
+  const reader = new FileReader();
+  reader.onload = function(e){
+    try{
+      const data = new Uint8Array(e.target.result);
+      const wb = XLSX.read(data, {type:'array', cellDates:true, dateNF:'yyyy-mm-dd'});
+      const sheetNames = ['Obligacionesfinancieras','flujojcevconsurep','flujocredimport','flujoassembly','srinominadata','proveedoresdata'];
+      const results = sheetNames.map(sn => {
+        const ws = wb.Sheets[sn];
+        if(!ws){ console.warn('Hoja no encontrada:', sn); return {values:[]}; }
+        const raw = XLSX.utils.sheet_to_json(ws, {header:1, raw:false, defval:null});
+        // Convert to same format as OneDrive API: {values: [[...]]}
+        return { values: raw };
+      });
+      // Convert date strings to Date objects for parseXLD compatibility
+      // (parseXLD already handles string dates, so this works as-is)
+      parseAndUpdateV3(results);
+      refreshAll();
+      const now = new Date();
+      const syncEl = document.getElementById('sync-status');
+      syncEl.textContent = '‚úì Actualizado ' + now.toLocaleTimeString('es-EC',{hour:'2-digit',minute:'2-digit'});
+      syncEl.className = 'sync-status ok';
+      toast('‚úì Datos cargados desde ' + file.name, 'ok');
+    } catch(err){
+      console.error(err);
+      toast('Error leyendo Excel: ' + err.message, 'err');
+    } finally {
+      btn.classList.remove('loading');
+      event.target.value = '';
+    }
+  };
+  reader.readAsArrayBuffer(file);
 }
 function refreshAll(){
   initKPIs();initAlertas();renderObl();renderAmort();renderGar();renderFlujos();renderSri();renderProv();renderCal();
@@ -916,6 +1072,109 @@ async function askAI(){
 }
 function qk(p){nav('ia');document.getElementById('ai-in').value=p;askAI();}
 
+
+// ‚ïê‚ïê‚ïê PARSE FROM EXCEL FILE (SheetJS) ‚ïê‚ïê‚ïê
+function parseAndUpdateV3(results){
+  const[sh1,sh2,sh3,sh4,sh5,sh6] = results;
+  const norm = e => {
+    if(!e) return '';
+    const s = String(e).trim();
+    return s === 'JCEV' ? 'JCEVCORP' : s;
+  };
+  const toNum = v => { if(v===null||v===undefined||v==='')return 0; const n=parseFloat(String(v).replace(/,/g,'')); return isNaN(n)?0:n; };
+  const toDt = v => { if(!v)return null; if(v instanceof Date)return v; return parseXLD(v); };
+
+  // ‚îÄ‚îÄ OBLIGACIONES ‚îÄ‚îÄ
+  const newObl = [];
+  for(let i=1;i<sh1.values.length;i++){
+    const r = sh1.values[i];
+    if(!r||!r[0])continue;
+    const emp = norm(r[0]);
+    const ban = String(r[1]||'').trim();
+    const vd  = toDt(r[2]);
+    const cap = toNum(r[3]);
+    if(!vd||cap<=0||!ban)continue;
+    const tipo = String(r[4]||'').trim()==='TA'?'TA':'UNICO';
+    newObl.push({emp,ban,vd,cap,int:toNum(r[5]),tot:toNum(r[6]),tasa:toNum(r[7]),tipo});
+  }
+  if(newObl.length>0){oblRaw.length=0;newObl.forEach(r=>oblRaw.push(r));}
+
+  // ‚îÄ‚îÄ TA TABLES (detect amortization blocks) ‚îÄ‚îÄ
+  const newTA = [];
+  const taColors = ['var(--accent)','var(--full,#f59e0b)','var(--assm,#10b981)','#a78bfa'];
+  let i=1, ci=0;
+  while(i < sh1.values.length){
+    const r = sh1.values[i];
+    if(!r||!r[0]){ i++; continue; }
+    const empRaw = String(r[0]).trim();
+    const banRaw = String(r[1]||'').trim();
+    // TA block header: empresa + PRODUBANCO + empty cap col + next row starts with "Monto"
+    if(['JCEVCORP','ASSEMBLY','FULLMOTOS','JCEV'].includes(norm(empRaw)) &&
+       banRaw.includes('PRODUBANCO') && !r[3] &&
+       i+1 < sh1.values.length && String(sh1.values[i+1][0]||'').startsWith('Monto')){
+      const emp2 = norm(empRaw);
+      const monto = toNum(sh1.values[i+1][1]);
+      const vctoRaw = (sh1.values[i+2]&&sh1.values[i+2][1]) ? sh1.values[i+2][1] : null;
+      const vctoD = toDt(vctoRaw);
+      const mLbl = vctoD ? (['','Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'][vctoD.getMonth()+1]+' '+vctoD.getFullYear()) : '';
+      i+=3;
+      if(i<sh1.values.length && String(sh1.values[i][0]||'').startsWith('Fecha'))i++;
+      const cuotas=[];
+      while(i<sh1.values.length){
+        const r2=sh1.values[i];
+        if(!r2||!r2[0]){i++;break;}
+        if(String(r2[0]).startsWith('TOTAL')){i++;break;}
+        const cd=toDt(r2[0]);
+        if(cd){
+          cuotas.push({d:cd,cap:toNum(r2[1]),int:toNum(r2[2]),cuota:toNum(r2[3]),
+            est:cd<new Date()?'CANCELADO':'PENDIENTE'});
+        }
+        i++;
+      }
+      let tasa='6.00%';
+      const oblMatch=oblRaw.find(o=>o.emp===emp2&&o.ban===banRaw);
+      if(oblMatch)tasa=(oblMatch.tasa*100).toFixed(2)+'%';
+      if(cuotas.length>0){
+        newTA.push({id:'ta'+(ci+1),emp:emp2,ban:banRaw,monto,tasa,vctoLabel:mLbl,
+          clr:taColors[ci%taColors.length],data:cuotas});
+        ci++;
+      }
+      continue;
+    }
+    i++;
+  }
+  if(newTA.length>0){taConfig.length=0;newTA.forEach(t=>taConfig.push(t));}
+
+  // ‚îÄ‚îÄ FLUJOS ‚îÄ‚îÄ
+  const parseFL = vals => vals.slice(1).filter(r=>r&&r[0]).map(r=>({
+    emp:norm(r[0]),prov:String(r[1]||'').trim(),merc:String(r[3]||'').trim(),
+    vt:toNum(r[4]),ant:toNum(r[5]),val:toNum(r[6]),vd:toDt(r[7])
+  })).filter(r=>r.vd&&r.val>0);
+  const cs=parseFL(sh2.values);if(cs.length){flujoCS.length=0;cs.forEach(r=>flujoCS.push(r));}
+  const cr=parseFL(sh3.values);if(cr.length){flujoCR.length=0;cr.forEach(r=>flujoCR.push(r));}
+  const as=parseFL(sh4.values);if(as.length){flujoAS.length=0;as.forEach(r=>flujoAS.push(r));}
+
+  // ‚îÄ‚îÄ SRI / NOMINA ‚îÄ‚îÄ
+  const sriN=[],nomN=[];let inNom2=false;
+  for(let j=1;j<sh5.values.length;j++){
+    const r=sh5.values[j];
+    if(!r||!r[0])continue;
+    const label=String(r[0]).trim();
+    if(label==='EMPRESA'&&String(r[1]||'').includes('NOMINA')){inNom2=true;continue;}
+    if(label==='EMPRESA')continue;
+    const obj={emp:norm(r[0]),val:toNum(r[1]),vd:toDt(r[2])};
+    if(obj.emp&&obj.val&&obj.vd)(inNom2?nomN:sriN).push(obj);
+  }
+  if(sriN.length){sriData.length=0;sriN.forEach(r=>sriData.push(r));}
+  if(nomN.length){nominaData.length=0;nomN.forEach(r=>nominaData.push(r));}
+
+  // ‚îÄ‚îÄ PROVEEDORES ‚îÄ‚îÄ
+  const prvN=sh6.values.slice(1).filter(r=>r&&r[0]&&r[1]).map(r=>({
+    emp:norm(r[0]),val:toNum(r[1]),vd:toDt(r[2])
+  })).filter(r=>r.val&&r.vd);
+  if(prvN.length){provData.length=0;prvN.forEach(r=>provData.push(r));}
+}
+
 // ‚ïê‚ïê‚ïê TOAST ‚ïê‚ïê‚ïê
 function toast(msg,type){
   const el=document.createElement('div');el.className=`toast toast-${type}`;el.textContent=msg;
@@ -937,4 +1196,4 @@ setTimeout(initCharts,100);
 getMSAL().catch(()=>{});
 </script>
 </body>
-</
+</html>
