@@ -2,1242 +2,812 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width,initial-scale=1">
 <title>JCEVCORP · Control Financiero 2026</title>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4.5.0/dist/chart.umd.js" integrity="sha384-iU8HYtnGQ8Cy4zl7gbNMOhsDTTKX02BTXptVP/vqAWIaTfM7isw76iyZCsjL2eVi" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <style>
-:root {
-  color-scheme: dark;
-  --bg: #0a0e17;
-  --bg2: #111827;
-  --bg3: #1a2233;
-  --bg4: #232d3f;
-  --border: #2a3448;
-  --border2: #374151;
-  --text: #e2e8f0;
-  --text2: #94a3b8;
-  --text3: #64748b;
-  --accent: #3b82f6;
-  --accent2: #1d4ed8;
-  --red: #ef4444;
-  --orange: #f97316;
-  --green: #22c55e;
-  --purple: #a855f7;
-  --teal: #14b8a6;
-  --yellow: #eab308;
-  --pink: #ec4899;
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0a0f1e;--bg2:#0f1629;--bg3:#141b2d;--bg4:#1a2235;
+  --border:#1e2d4a;--border2:#243352;
+  --text:#e2e8f0;--text2:#94a3b8;--text3:#64748b;
+  --accent:#3b82f6;--green:#22c55e;--red:#ef4444;--warn:#f59e0b;
+  --sidebar:220px;--topbar:52px;
 }
-* { box-sizing: border-box; margin: 0; padding: 0; }
-body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--bg); color: var(--text); font-size: 13px; display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
-
-/* TOP BAR */
-.topbar { background: var(--bg2); border-bottom: 1px solid var(--border); padding: 0 20px; height: 52px; display: flex; align-items: center; justify-content: space-between; flex-shrink: 0; z-index: 100; }
-.topbar-brand { display: flex; align-items: center; gap: 10px; }
-.brand-logo { font-size: 16px; font-weight: 900; letter-spacing: 1px; color: white; }
-.brand-sub { font-size: 9px; letter-spacing: 2px; color: var(--text3); text-transform: uppercase; }
-.topbar-title { font-size: 14px; font-weight: 600; color: var(--text); }
-.topbar-right { display: flex; align-items: center; gap: 8px; }
-.badge-warn { background: rgba(234,179,8,0.15); color: #fbbf24; border: 1px solid rgba(234,179,8,0.3); border-radius: 20px; padding: 4px 10px; font-size: 11px; font-weight: 600; display: flex; align-items: center; gap: 5px; }
-.badge-danger { background: rgba(239,68,68,0.15); color: #f87171; border: 1px solid rgba(239,68,68,0.3); border-radius: 20px; padding: 4px 10px; font-size: 11px; font-weight: 600; display: flex; align-items: center; gap: 5px; }
-.badge-warn::before { content:'⚠'; font-size:11px; }
-.badge-danger::before { content:'●'; color:#f87171; }
-
+body{background:var(--bg);color:var(--text);font-family:'Inter',system-ui,sans-serif;font-size:13px;display:flex;flex-direction:column;height:100vh;overflow:hidden}
+/* TOPBAR */
+#topbar{height:var(--topbar);background:var(--bg2);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 16px;gap:12px;flex-shrink:0;z-index:100}
+.tb-brand{font-weight:800;font-size:15px;color:var(--accent);letter-spacing:1px}
+.tb-sub{font-size:10px;color:var(--text3);letter-spacing:2px}
+#section-title{margin-left:auto;font-size:12px;color:var(--text2);font-weight:600}
+.tb-right{display:flex;align-items:center;gap:8px;margin-left:16px}
+.badge-warn{background:rgba(245,158,11,.15);color:var(--warn);border:1px solid rgba(245,158,11,.3);border-radius:6px;padding:3px 8px;font-size:11px;font-weight:600}
+.badge-danger{background:rgba(239,68,68,.15);color:var(--red);border:1px solid rgba(239,68,68,.3);border-radius:6px;padding:3px 8px;font-size:11px;font-weight:600}
+.badge-ok{background:rgba(34,197,94,.15);color:var(--green);border:1px solid rgba(34,197,94,.3);border-radius:6px;padding:3px 8px;font-size:11px;font-weight:600}
+.btn-upload{background:var(--accent);color:#fff;border:none;border-radius:6px;padding:5px 12px;font-size:11px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:6px}
+.btn-upload input{display:none}
 /* LAYOUT */
-.layout { display: flex; flex: 1; overflow: hidden; }
-
+#layout{display:flex;flex:1;overflow:hidden}
 /* SIDEBAR */
-.sidebar { width: 210px; background: var(--bg2); border-right: 1px solid var(--border); display: flex; flex-direction: column; flex-shrink: 0; overflow-y: auto; }
-.sidebar-section { padding: 16px 12px 4px; }
-.sidebar-label { font-size: 9px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; color: var(--text3); padding: 0 8px; margin-bottom: 4px; }
-.nav-item { display: flex; align-items: center; gap: 9px; padding: 8px 10px; border-radius: 8px; cursor: pointer; color: var(--text2); font-size: 12px; font-weight: 500; transition: all 0.15s; user-select: none; }
-.nav-item:hover { background: var(--bg3); color: var(--text); }
-.nav-item.active { background: rgba(59,130,246,0.15); color: #60a5fa; }
-.nav-item .nav-icon { font-size: 14px; width: 18px; text-align: center; }
-.nav-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--red); margin-left: auto; }
-
-/* CONTENT */
-.content { flex: 1; overflow-y: auto; padding: 24px; background: var(--bg); }
-
-/* PANELS */
-.panel { display: none; }
-.panel.active { display: block; }
-
-/* PAGE HEADER */
-.page-header { margin-bottom: 20px; }
-.page-header h2 { font-size: 22px; font-weight: 700; color: white; }
-.page-header p { font-size: 12px; color: var(--text3); margin-top: 3px; }
-
-/* KPI GRID */
-.kpi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(175px, 1fr)); gap: 12px; margin-bottom: 20px; }
-.kpi { background: var(--bg2); border: 1px solid var(--border); border-radius: 10px; padding: 16px; }
-.kpi label { font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.8px; color: var(--text3); }
-.kpi .val { font-size: 22px; font-weight: 800; margin: 6px 0 4px; color: white; }
-.kpi .sub { font-size: 10px; color: var(--text3); }
-.kpi.c-red { border-top: 2px solid var(--red); }
-.kpi.c-orange { border-top: 2px solid var(--orange); }
-.kpi.c-blue { border-top: 2px solid var(--accent); }
-.kpi.c-green { border-top: 2px solid var(--green); }
-.kpi.c-purple { border-top: 2px solid var(--purple); }
-.kpi.c-teal { border-top: 2px solid var(--teal); }
-.kpi.c-yellow { border-top: 2px solid var(--yellow); }
-
+#sidebar{width:var(--sidebar);background:var(--bg2);border-right:1px solid var(--border);display:flex;flex-direction:column;overflow-y:auto;flex-shrink:0}
+.logo{padding:16px;border-bottom:1px solid var(--border)}
+.logo-brand{font-weight:800;font-size:16px;color:var(--accent)}
+.logo-sub{font-size:10px;color:var(--text3);letter-spacing:1.5px;margin-top:2px}
+.nav-group{padding:10px 0}
+.nav-group-label{padding:4px 14px;font-size:9px;font-weight:700;color:var(--text3);letter-spacing:2px;text-transform:uppercase}
+.nav-item{padding:8px 14px;font-size:12px;color:var(--text2);cursor:pointer;border-left:3px solid transparent;transition:all .15s;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.nav-item:hover{background:var(--bg3);color:var(--text)}
+.nav-item.active{background:rgba(59,130,246,.1);border-left-color:var(--accent);color:#fff}
+/* MAIN */
+#main{flex:1;overflow-y:auto;padding:20px}
+.section{display:none}
+.section.active{display:block}
+/* SEC HEADER */
+.sec-header{margin-bottom:16px}
+.sec-header h2{font-size:17px;font-weight:700;color:var(--text)}
+.sec-header .sh-sub{font-size:11px;color:var(--text3);margin-top:2px;display:block}
+/* CARDS */
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin-bottom:20px}
+.card{background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:14px}
+.card.accent{border-color:rgba(59,130,246,.3);background:rgba(59,130,246,.07)}
+.card.danger{border-color:rgba(239,68,68,.3);background:rgba(239,68,68,.07)}
+.card.warn{border-color:rgba(245,158,11,.3);background:rgba(245,158,11,.07)}
+.card.green{border-color:rgba(34,197,94,.3);background:rgba(34,197,94,.07)}
+.c-label{font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:1px;margin-bottom:6px}
+.c-val{font-size:20px;font-weight:800;color:var(--text)}
+.c-sub{font-size:10px;color:var(--text2);margin-top:4px}
+/* TABLE */
+.tbl-wrap{background:var(--bg2);border:1px solid var(--border);border-radius:10px;overflow:hidden;margin-bottom:20px}
+.tbl-title{padding:10px 14px;background:var(--bg3);font-weight:700;font-size:12px;color:var(--text2);border-bottom:1px solid var(--border)}
+table{width:100%;border-collapse:collapse}
+th{padding:9px 10px;text-align:left;font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;background:var(--bg3);border-bottom:1px solid var(--border);white-space:nowrap}
+td{padding:8px 10px;border-bottom:1px solid var(--border);color:var(--text2);font-size:12px;vertical-align:middle}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:rgba(255,255,255,.02)}
+td.num,th.num{text-align:right}
+.tot td{font-weight:700;color:var(--text);background:rgba(59,130,246,.05)}
 /* CHARTS */
-.chart-row { display: grid; grid-template-columns: 2fr 1fr; gap: 14px; margin-bottom: 20px; }
-.chart-row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 20px; }
-.card { background: var(--bg2); border: 1px solid var(--border); border-radius: 10px; padding: 18px; }
-.card h3 { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px; color: var(--text3); margin-bottom: 16px; }
-.chart-wrap { position: relative; height: 220px; }
-
-/* SECTION */
-.section-title { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: var(--text3); margin: 22px 0 10px; padding-bottom: 8px; border-bottom: 1px solid var(--border); }
-
-/* TABLES */
-.table-wrap { background: var(--bg2); border: 1px solid var(--border); border-radius: 10px; overflow: hidden; margin-bottom: 16px; }
-table { width: 100%; border-collapse: collapse; font-size: 12px; }
-thead th { background: var(--bg3); padding: 10px 12px; text-align: left; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px; color: var(--text3); border-bottom: 1px solid var(--border); white-space: nowrap; }
-tbody td { padding: 9px 12px; border-bottom: 1px solid var(--border); color: var(--text); }
-tbody tr:last-child td { border-bottom: none; }
-tbody tr:hover { background: var(--bg3); }
-.num { text-align: right; font-variant-numeric: tabular-nums; font-weight: 600; color: white; }
-.total-row td { background: var(--bg3); font-weight: 700; border-top: 1px solid var(--border2) !important; color: white; }
-
-/* EMPRESA BADGES */
-.emp { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 10px; font-weight: 700; letter-spacing: 0.3px; }
-.emp-jcev { background: rgba(59,130,246,0.2); color: #93c5fd; }
-.emp-assembly { background: rgba(34,197,94,0.2); color: #86efac; }
-.emp-consurep { background: rgba(168,85,247,0.2); color: #d8b4fe; }
-.emp-credimport { background: rgba(249,115,22,0.2); color: #fdba74; }
-.emp-fullmotos { background: rgba(148,163,184,0.15); color: #cbd5e1; }
-.emp-todomoto { background: rgba(20,184,166,0.2); color: #5eead4; }
-.emp-montaz { background: rgba(234,179,8,0.2); color: #fde047; }
-.emp-jcevcorp { background: rgba(59,130,246,0.2); color: #93c5fd; }
-
-/* TYPE BADGES */
-.type { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 10px; font-weight: 600; }
-.type-obl { background: rgba(239,68,68,0.15); color: #fca5a5; }
-.type-imp { background: rgba(59,130,246,0.15); color: #93c5fd; }
-.type-sri { background: rgba(234,179,8,0.15); color: #fde047; }
-.type-nom { background: rgba(168,85,247,0.15); color: #d8b4fe; }
-.type-prov { background: rgba(34,197,94,0.15); color: #86efac; }
-.type-amort { background: rgba(20,184,166,0.15); color: #5eead4; }
-
-/* STATUS */
-.status-vencida { background: rgba(239,68,68,0.15); color: #f87171; border: 1px solid rgba(239,68,68,0.3); border-radius: 20px; padding: 2px 10px; font-size: 10px; font-weight: 700; }
-.status-pend { background: rgba(249,115,22,0.1); color: #fb923c; border: 1px solid rgba(249,115,22,0.25); border-radius: 20px; padding: 2px 10px; font-size: 10px; font-weight: 600; }
-.status-ok { background: rgba(34,197,94,0.1); color: #4ade80; border: 1px solid rgba(34,197,94,0.25); border-radius: 20px; padding: 2px 10px; font-size: 10px; font-weight: 600; }
-
-/* ALERT */
-.alert { background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.3); border-radius: 8px; padding: 10px 16px; margin-bottom: 16px; font-size: 12px; color: #fca5a5; display: flex; align-items: center; gap: 8px; }
-
-/* ======= CALENDARIO ======= */
-.cal-filters { display: flex; align-items: center; gap: 12px; margin-bottom: 20px; flex-wrap: wrap; }
-.filter-group { display: flex; align-items: center; gap: 8px; }
-.filter-label { font-size: 11px; color: var(--text3); font-weight: 600; }
-.filter-select { background: var(--bg3); border: 1px solid var(--border2); color: var(--text); padding: 7px 12px; border-radius: 8px; font-size: 12px; cursor: pointer; outline: none; appearance: none; -webkit-appearance: none; padding-right: 28px; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%2364748b' d='M6 8L1 3h10z'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 10px center; }
-.filter-select:focus { border-color: var(--accent); }
-
-.cal-summary { display: flex; gap: 20px; margin-bottom: 16px; flex-wrap: wrap; }
-.cal-sum-item { background: var(--bg2); border: 1px solid var(--border); border-radius: 8px; padding: 10px 16px; }
-.cal-sum-item label { font-size: 10px; color: var(--text3); font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
-.cal-sum-item .v { font-size: 18px; font-weight: 800; color: white; margin-top: 2px; }
-
-.cal-list { display: flex; flex-direction: column; gap: 0; }
-
-.cal-month { margin-bottom: 4px; }
-.cal-month-header { display: flex; align-items: center; justify-content: space-between; padding: 12px 16px 8px; background: var(--bg3); border: 1px solid var(--border); border-radius: 8px 8px 0 0; margin-bottom: 0; }
-.cal-month-name { font-size: 15px; font-weight: 700; color: white; }
-.cal-month-count { font-size: 11px; color: var(--text3); }
-.cal-month-total { font-size: 15px; font-weight: 700; color: #60a5fa; }
-
-.cal-items { border: 1px solid var(--border); border-top: none; border-radius: 0 0 8px 8px; overflow: hidden; margin-bottom: 16px; }
-
-.cal-item { display: flex; align-items: center; gap: 14px; padding: 11px 16px; border-bottom: 1px solid var(--border); background: var(--bg2); transition: background 0.1s; cursor: default; }
-.cal-item:last-child { border-bottom: none; }
-.cal-item:hover { background: var(--bg3); }
-
-.cal-date { min-width: 48px; text-align: center; background: var(--bg3); border: 1px solid var(--border); border-radius: 8px; padding: 4px 6px; }
-.cal-date .day { font-size: 18px; font-weight: 800; color: white; line-height: 1; }
-.cal-date .dow { font-size: 9px; font-weight: 600; color: var(--text3); text-transform: uppercase; letter-spacing: 0.5px; }
-.cal-date.urgent { border-color: rgba(239,68,68,0.5); background: rgba(239,68,68,0.08); }
-.cal-date.urgent .day { color: #f87171; }
-
-.cal-info { flex: 1; min-width: 0; }
-.cal-info-top { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
-.cal-info-desc { font-size: 12px; color: var(--text2); margin-top: 3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 380px; }
-
-.cal-amount { font-size: 15px; font-weight: 800; color: white; text-align: right; white-space: nowrap; }
-.cal-amount.big { color: #f87171; }
-
-/* PROGRESS TWO-COL */
-.two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
-
+.charts-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:16px;margin-bottom:20px}
+.chart-box{background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:16px}
+.chart-box h4{font-size:12px;color:var(--text2);margin-bottom:12px;font-weight:600}
+/* BADGES */
+.st-badge{display:inline-block;padding:2px 8px;border-radius:10px;font-size:10px;font-weight:700}
+.st-pend{background:rgba(245,158,11,.15);color:var(--warn)}
+.st-canc{background:rgba(100,116,139,.15);color:var(--text3)}
+.st-venc{background:rgba(239,68,68,.15);color:var(--red)}
+.st-nopag{background:rgba(239,68,68,.15);color:var(--red)}
+.ta-badge{background:rgba(168,85,247,.15);color:#a855f7;border:1px solid rgba(168,85,247,.3);border-radius:4px;padding:1px 6px;font-size:10px;font-weight:700}
+/* EMP BADGES */
+.eb{display:inline-block;padding:2px 7px;border-radius:10px;font-size:10px;font-weight:700;white-space:nowrap}
+.eb-jcev{background:rgba(59,130,246,.2);color:#60a5fa}
+.eb-asm{background:rgba(34,197,94,.2);color:#4ade80}
+.eb-full{background:rgba(168,85,247,.2);color:#c084fc}
+.eb-cred{background:rgba(249,115,22,.2);color:#fb923c}
+.eb-cons{background:rgba(6,182,212,.2);color:#22d3ee}
+.eb-todo{background:rgba(234,179,8,.2);color:#facc15}
+.eb-mont{background:rgba(239,68,68,.2);color:#f87171}
+/* AMORT */
+.amort-block{background:var(--bg2);border:1px solid var(--border);border-radius:10px;overflow:hidden;margin-bottom:16px}
+.amort-header{padding:10px 14px;background:var(--bg3);border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center}
+.amort-header h3{font-size:13px;font-weight:700;color:var(--text)}
+.amort-header .ah-right{font-size:11px;color:var(--text3)}
+/* CALENDAR */
+#cal-pills{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px}
+.pill{background:var(--bg3);border:1px solid var(--border2);border-radius:20px;padding:4px 12px;font-size:11px;color:var(--text2);cursor:pointer;transition:all .15s;user-select:none}
+.pill.active{background:var(--accent);color:#fff;border-color:var(--accent)}
+.cal-filters{display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap;align-items:center}
+.cal-filters select{background:var(--bg3);border:1px solid var(--border2);border-radius:6px;color:var(--text);padding:6px 10px;font-size:12px;cursor:pointer}
+.cal-filters label{font-size:11px;color:var(--text3);display:flex;align-items:center;gap:5px;cursor:pointer}
+#cal-body{display:flex;flex-direction:column;gap:14px}
+.cal-month{background:var(--bg2);border:1px solid var(--border);border-radius:10px;overflow:hidden}
+.cal-month-hdr{padding:10px 16px;background:var(--bg3);border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center}
+.cmh-title{font-weight:700;font-size:13px;color:var(--text)}
+.cmh-stats{font-size:11px;color:var(--text3)}
+.cal-list{display:flex;flex-direction:column}
+.cal-card{display:flex;align-items:center;gap:12px;padding:10px 14px;border-top:1px solid var(--border)}
+.cal-card:first-child{border-top:none}
+.cal-day-box{display:flex;flex-direction:column;align-items:center;justify-content:center;min-width:46px;background:var(--bg3);border-radius:8px;padding:6px 8px;flex-shrink:0}
+.cal-dn{font-size:20px;font-weight:800;line-height:1;color:var(--text)}
+.cal-dow{font-size:9px;font-weight:700;color:var(--text3);text-transform:uppercase;margin-top:2px}
+.cal-body{flex:1;min-width:0}
+.cal-badges{display:flex;gap:5px;flex-wrap:wrap;margin-bottom:4px;align-items:center}
+.typ-badge{display:inline-block;padding:2px 7px;border-radius:8px;font-size:10px;font-weight:600;border:1px solid transparent}
+.cal-desc{font-size:11px;color:var(--text2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:500px}
+.cal-amount{font-size:13px;font-weight:700;color:var(--green);white-space:nowrap;margin-left:auto;flex-shrink:0}
+/* EMPTY */
+.empty-state{text-align:center;padding:50px 20px;color:var(--text3)}
+.empty-state .ei{font-size:44px;margin-bottom:10px}
+/* TOAST */
+#toast{position:fixed;bottom:20px;right:20px;background:var(--bg3);border:1px solid var(--border2);border-radius:8px;padding:10px 16px;font-size:12px;font-weight:600;z-index:999;opacity:0;transform:translateY(10px);transition:all .3s;pointer-events:none}
+#toast.show{opacity:1;transform:translateY(0)}
 /* SCROLLBAR */
-::-webkit-scrollbar { width: 6px; height: 6px; }
-::-webkit-scrollbar-track { background: var(--bg); }
-::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 3px; }
-::-webkit-scrollbar-thumb:hover { background: var(--text3); }
-
-/* PROGRESS BAR */
-.pbar { background: var(--bg3); border-radius: 3px; height: 5px; margin-top: 4px; }
-.pbar-fill { height: 100%; border-radius: 3px; }
-
-/* HIDDEN */
-.hidden { display: none !important; }
-
-/* PILLS */
-.pills-wrap { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
-.pill { padding: 5px 12px; border-radius: 20px; font-size: 11px; font-weight: 600; cursor: pointer; border: 1px solid var(--border2); background: var(--bg3); color: var(--text3); transition: all 0.15s; user-select: none; }
-.pill:hover { border-color: var(--accent); color: var(--text); }
-.pill.active { background: rgba(59,130,246,0.2); border-color: #3b82f6; color: #93c5fd; }
-.pill.active.p-obl { background:rgba(239,68,68,0.2); border-color:#ef4444; color:#fca5a5; }
-.pill.active.p-amort { background:rgba(20,184,166,0.2); border-color:#14b8a6; color:#5eead4; }
-.pill.active.p-imp { background:rgba(59,130,246,0.2); border-color:#3b82f6; color:#93c5fd; }
-.pill.active.p-sri { background:rgba(234,179,8,0.2); border-color:#eab308; color:#fde047; }
-.pill.active.p-nom { background:rgba(168,85,247,0.2); border-color:#a855f7; color:#d8b4fe; }
-.pill.active.p-prov { background:rgba(34,197,94,0.2); border-color:#22c55e; color:#86efac; }
-
-/* UPLOAD AREA */
-.upload-btn { background: rgba(59,130,246,0.15); border: 1px solid rgba(59,130,246,0.35); color: #60a5fa; border-radius: 8px; padding: 6px 14px; font-size: 12px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 6px; transition: all 0.15s; }
-.upload-btn:hover { background: rgba(59,130,246,0.25); }
-.upload-toast { position:fixed; bottom:20px; right:20px; background:#1a2233; border:1px solid var(--border2); border-radius:10px; padding:12px 18px; font-size:12px; color:var(--text); z-index:9999; display:none; box-shadow:0 4px 20px rgba(0,0,0,0.5); }
-.upload-toast.show { display:flex; align-items:center; gap:10px; }
+::-webkit-scrollbar{width:5px;height:5px}
+::-webkit-scrollbar-track{background:var(--bg)}
+::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px}
+/* RESPONSIVE */
+@media(max-width:900px){#sidebar{width:180px}.cards{grid-template-columns:repeat(2,1fr)}}
 </style>
 </head>
 <body>
-
-<!-- TOP BAR -->
-<div class="topbar">
-  <div class="topbar-brand">
-    <div>
-      <div class="brand-logo">JCEVCORP</div>
-      <div class="brand-sub">Control Financiero 2026</div>
-    </div>
+<div id="topbar">
+  <div>
+    <div class="tb-brand">JCEVCORP</div>
+    <div class="tb-sub">CONTROL FINANCIERO 2026</div>
   </div>
-  <div class="topbar-title" id="topbar-title">Resumen</div>
-  <div class="topbar-right">
-    <div class="badge-warn" id="badge-warn">1 vencen en 90d</div>
-    <div class="badge-danger" id="badge-danger">6 vencen ≤30d</div>
-    <label class="upload-btn" title="Cargar nuevo Excel para actualizar todos los datos">
-      📤 Cargar Excel
-      <input type="file" accept=".xlsx,.xls" id="excel-input" style="display:none" onchange="handleExcel(this)">
-    </label>
+  <span id="section-title" style="margin-left:16px;font-size:12px;color:var(--text2);font-weight:600">Resumen General</span>
+  <div class="tb-right" style="margin-left:auto">
+    <label class="btn-upload">📤 Cargar Excel<input type="file" id="excel-file" accept=".xlsx,.xls" onchange="handleExcel(this)"></label>
   </div>
-  <div class="upload-toast" id="upload-toast"></div>
 </div>
 
-<!-- LAYOUT -->
-<div class="layout">
+<div id="layout">
+<nav id="sidebar">
+  <div class="logo"><div class="logo-brand">JCEVCORP</div><div class="logo-sub">FINANZAS 2026</div></div>
+  <div class="nav-group">
+    <div class="nav-group-label">Principal</div>
+    <div class="nav-item active" onclick="nav('s-res')">📊 Resumen</div>
+  </div>
+  <div class="nav-group">
+    <div class="nav-group-label">Obligaciones</div>
+    <div class="nav-item" onclick="nav('s-obl')">🏦 Obligaciones</div>
+    <div class="nav-item" onclick="nav('s-amort')">📉 Amort. TA</div>
+  </div>
+  <div class="nav-group">
+    <div class="nav-group-label">Importaciones</div>
+    <div class="nav-item" onclick="nav('s-jcev')">📦 JCEV &amp; CONSUREP</div>
+    <div class="nav-item" onclick="nav('s-cred')">🚚 CREDIMPORT</div>
+    <div class="nav-item" onclick="nav('s-asm')">🏍️ ASSEMBLY</div>
+  </div>
+  <div class="nav-group">
+    <div class="nav-group-label">Gastos</div>
+    <div class="nav-item" onclick="nav('s-sri')">🧾 SRI &amp; Nómina</div>
+    <div class="nav-item" onclick="nav('s-prov')">🤝 Proveedores</div>
+    <div class="nav-item" onclick="nav('s-imp')">🔒 SENAE</div>
+  </div>
+  <div class="nav-group">
+    <div class="nav-group-label">Control</div>
+    <div class="nav-item" onclick="nav('s-cal')">📅 Calendario</div>
+  </div>
+</nav>
 
-  <!-- SIDEBAR -->
-  <div class="sidebar">
-    <div class="sidebar-section">
-      <div class="sidebar-label">Principal</div>
-      <div class="nav-item active" onclick="nav('resumen',this,'Resumen')"><span class="nav-icon">📊</span> Resumen <span class="nav-dot"></span></div>
-      <div class="nav-item" onclick="nav('obligaciones',this,'Obligaciones')"><span class="nav-icon">🏦</span> Obligaciones</div>
-      <div class="nav-item" onclick="nav('amortizacion',this,'Amortización TA')"><span class="nav-icon">📉</span> Amortización TA</div>
-    </div>
-    <div class="sidebar-section">
-      <div class="sidebar-label">Flujos</div>
-      <div class="nav-item" onclick="nav('importaciones',this,'Importaciones')"><span class="nav-icon">📦</span> Importaciones</div>
-      <div class="nav-item" onclick="nav('sri',this,'SRI & Nómina')"><span class="nav-icon">🧾</span> SRI &amp; Nómina</div>
-      <div class="nav-item" onclick="nav('proveedores',this,'Proveedores')"><span class="nav-icon">🤝</span> Proveedores</div>
-    </div>
-    <div class="sidebar-section">
-      <div class="sidebar-label">Herramientas</div>
-      <div class="nav-item" onclick="nav('calendario',this,'Calendario Consolidado')"><span class="nav-icon">📅</span> Calendario</div>
+<div id="main">
+
+<!-- RESUMEN -->
+<div id="s-res" class="section active">
+  <div class="sec-header"><h2>📊 Resumen General</h2><span class="sh-sub">Panorama financiero consolidado · JCEVCORP 2026</span></div>
+  <div class="cards">
+    <div class="card danger"><div class="c-label">Total Obligaciones</div><div class="c-val">$14,426,549</div><div class="c-sub">24 créditos activos · Capital $13,853,736</div></div>
+    <div class="card accent"><div class="c-label">Flujo JCEV &amp; CONSUREP</div><div class="c-val">$4,202,846</div><div class="c-sub">41 importaciones</div></div>
+    <div class="card"><div class="c-label">Flujo CREDIMPORT</div><div class="c-val">$350,000</div><div class="c-sub">Anticipo pendiente</div></div>
+    <div class="card accent"><div class="c-label">Flujo ASSEMBLY</div><div class="c-val">$2,419,153</div><div class="c-sub">21 importaciones</div></div>
+    <div class="card warn"><div class="c-label">SRI Junio 2026</div><div class="c-val">$935,755</div><div class="c-sub">Débito: $377,755 · NC: $558,000</div></div>
+    <div class="card"><div class="c-label">Nómina Junio 2026</div><div class="c-val">$277,298</div><div class="c-sub">6 empresas · 2 quincenas</div></div>
+    <div class="card"><div class="c-label">Proveedores Nacionales</div><div class="c-val">$800,000</div><div class="c-sub">5 empresas</div></div>
+    <div class="card danger"><div class="c-label">Imp. Garantizados SENAE</div><div class="c-val">$901,488</div><div class="c-sub">SENAE · 18 liq · Vence 04/08/2026</div></div>
+  </div>
+  <div class="charts-row">
+    <div class="chart-box"><h4>Obligaciones por Empresa</h4><canvas id="c-obl-emp" height="200"></canvas></div>
+    <div class="chart-box"><h4>Importaciones por Empresa</h4><canvas id="c-imp-emp" height="200"></canvas></div>
+  </div>
+  <div class="charts-row">
+    <div class="chart-box"><h4>SRI – Nota Crédito vs Débito</h4><canvas id="c-sri" height="180"></canvas></div>
+    <div class="chart-box"><h4>Nómina por Empresa</h4><canvas id="c-nom" height="180"></canvas></div>
+  </div>
+  <div class="tbl-wrap">
+    <div class="tbl-title">⏰ Obligaciones con Vencimiento Próximo (PENDIENTE)</div>
+    <table id="tbl-venc"><thead><tr><th>Empresa</th><th>Institución</th><th>Vencimiento</th><th>Tipo</th><th class="num">Capital</th><th class="num">Total</th><th>Estado</th></tr></thead>
+    <tbody id="tbody-venc"></tbody></table>
+  </div>
+</div>
+
+<!-- OBLIGACIONES -->
+<div id="s-obl" class="section">
+  <div class="sec-header"><h2>🏦 Obligaciones Financieras</h2><span class="sh-sub">24 créditos activos · Solo PENDIENTE</span></div>
+  <div class="cards">
+    <div class="card danger"><div class="c-label">Total Obligaciones</div><div class="c-val">$14,426,549</div></div>
+    <div class="card"><div class="c-label">Capital Total</div><div class="c-val">$13,853,736</div></div>
+    <div class="card accent"><div class="c-label">JCEVCORP</div><div class="c-val" id="obl-jcev-total">—</div></div>
+    <div class="card"><div class="c-label">ASSEMBLY</div><div class="c-val" id="obl-asm-total">—</div></div>
+    <div class="card"><div class="c-label">FULLMOTOS</div><div class="c-val" id="obl-full-total">—</div></div>
+  </div>
+  <div class="tbl-wrap">
+    <table id="tbl-obl">
+      <thead><tr><th>Empresa</th><th>Institución</th><th>Vencimiento</th><th>Cuotas</th><th class="num">Capital</th><th class="num">Interés</th><th class="num">Total</th><th>Tasa</th></tr></thead>
+      <tbody id="tbody-obl"></tbody>
+    </table>
+  </div>
+</div>
+
+<!-- AMORT TA -->
+<div id="s-amort" class="section">
+  <div class="sec-header"><h2>📉 Tablas de Amortización TA</h2><span class="sh-sub">8 créditos con tabla de amortización · Solo cuotas PENDIENTE</span></div>
+  <div class="cards">
+    <div class="card accent"><div class="c-label">Cuotas Mensuales TA</div><div class="c-val" id="amort-sum-total">—</div><div class="c-sub">Suma de todos los créditos TA</div></div>
+    <div class="card"><div class="c-label">JCEVCORP (4 créditos)</div><div class="c-val" id="amort-jcev">—</div></div>
+    <div class="card"><div class="c-label">ASSEMBLY (2 créditos)</div><div class="c-val" id="amort-asm">—</div></div>
+    <div class="card"><div class="c-label">FULLMOTOS (1 crédito)</div><div class="c-val" id="amort-full">—</div></div>
+  </div>
+  <div id="amort-tables"></div>
+</div>
+
+<!-- JCEV CONSUREP -->
+<div id="s-jcev" class="section">
+  <div class="sec-header"><h2>📦 Flujo JCEV &amp; CONSUREP</h2><span class="sh-sub">41 importaciones · Junio 2026</span></div>
+  <div class="cards">
+    <div class="card accent"><div class="c-label">Total Flujo</div><div class="c-val">$4,202,846</div></div>
+    <div class="card"><div class="c-label">JCEVCORP</div><div class="c-val">$2,078,463</div><div class="c-sub">36 importaciones</div></div>
+    <div class="card"><div class="c-label">CONSUREP</div><div class="c-val">$2,047,398</div><div class="c-sub">4 importaciones</div></div>
+    <div class="card"><div class="c-label">TODOMOTO</div><div class="c-val">$76,986</div><div class="c-sub">1 importación</div></div>
+  </div>
+  <div class="tbl-wrap">
+    <table>
+      <thead><tr><th>Empresa</th><th>Proveedor</th><th>Importación</th><th>Mercadería</th><th class="num">Valor Total</th><th class="num">Anticipo</th><th class="num">A Pagar</th><th>Vencimiento</th><th>Ejecutivo</th></tr></thead>
+      <tbody id="tbody-jcev"></tbody>
+    </table>
+  </div>
+</div>
+
+<!-- CREDIMPORT -->
+<div id="s-cred" class="section">
+  <div class="sec-header"><h2>🚚 Flujo CREDIMPORT</h2><span class="sh-sub">Importaciones CREDIMPORT · Junio 2026</span></div>
+  <div class="cards">
+    <div class="card accent"><div class="c-label">Total Flujo</div><div class="c-val">$350,000</div></div>
+    <div class="card"><div class="c-label">Importaciones</div><div class="c-val">1</div><div class="c-sub">período Junio 2026</div></div>
+  </div>
+  <div class="tbl-wrap">
+    <table>
+      <thead><tr><th>Empresa</th><th>Proveedor</th><th>Importación</th><th>Mercadería</th><th class="num">Valor Total</th><th class="num">Anticipo</th><th class="num">A Pagar</th><th>Vencimiento</th><th>Ejecutivo</th></tr></thead>
+      <tbody id="tbody-cred"></tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ASSEMBLY -->
+<div id="s-asm" class="section">
+  <div class="sec-header"><h2>🏍️ Flujo ASSEMBLY</h2><span class="sh-sub">21 importaciones · Motos &amp; Vehículos · Junio 2026</span></div>
+  <div class="cards">
+    <div class="card accent"><div class="c-label">Total Flujo</div><div class="c-val">$2,419,153</div></div>
+    <div class="card"><div class="c-label">Importaciones</div><div class="c-val">21</div><div class="c-sub">período Junio 2026</div></div>
+    <div class="card"><div class="c-label">Valor Total (con anticipo)</div><div class="c-val">$2,689,232</div></div>
+    <div class="card"><div class="c-label">Anticipos Pagados</div><div class="c-val">$720,079</div></div>
+  </div>
+  <div class="tbl-wrap">
+    <table>
+      <thead><tr><th>#</th><th>Proveedor</th><th>Importación</th><th>Modelo</th><th class="num">Valor Total</th><th class="num">Anticipo</th><th class="num">A Pagar</th><th>Vencimiento</th></tr></thead>
+      <tbody id="tbody-asm"></tbody>
+    </table>
+  </div>
+</div>
+
+<!-- SRI NOMINA -->
+<div id="s-sri" class="section">
+  <div class="sec-header"><h2>🧾 SRI &amp; Nómina</h2><span class="sh-sub">Obligaciones tributarias y nómina · Junio 2026</span></div>
+  <div class="cards">
+    <div class="card warn"><div class="c-label">Total SRI</div><div class="c-val">$935,755</div><div class="c-sub">Nota Crédito: $558,000</div></div>
+    <div class="card danger"><div class="c-label">Total a Debitar</div><div class="c-val">$377,755</div><div class="c-sub">Efectivo requerido</div></div>
+    <div class="card"><div class="c-label">Total Nómina</div><div class="c-val">$277,298</div><div class="c-sub">6 empresas · 2 quincenas</div></div>
+  </div>
+  <div class="tbl-wrap">
+    <div class="tbl-title">SRI – Declaraciones Junio 2026</div>
+    <table>
+      <thead><tr><th>Empresa</th><th>SRI Total</th><th>Nota Crédito</th><th class="num">Débito Bancario</th><th>Banco</th><th>Fecha Pago</th></tr></thead>
+      <tbody id="tbody-sri"></tbody>
+    </table>
+  </div>
+  <div class="tbl-wrap" style="border-color:rgba(245,158,11,.3)">
+    <div class="tbl-title" style="color:var(--warn)">⚠ SRI – Julio 2026 (pendiente de datos)</div>
+    <div style="padding:16px;color:var(--text3);font-size:12px">
+      Las declaraciones SRI de julio 2026 no están en el Excel actual. 
+      Una vez que cargues el archivo actualizado, esta sección se completará con los montos de débito y nota crédito por empresa.
     </div>
   </div>
+  <div class="tbl-wrap">
+    <div class="tbl-title">Nómina – Junio 2026 (1ª y 2ª Quincena)</div>
+    <table>
+      <thead><tr><th>Empresa</th><th>Quincena</th><th class="num">Monto</th><th>Fecha Pago</th></tr></thead>
+      <tbody id="tbody-nom"></tbody>
+    </table>
+  </div>
+</div>
 
-  <!-- CONTENT -->
-  <div class="content">
+<!-- PROVEEDORES -->
+<div id="s-prov" class="section">
+  <div class="sec-header"><h2>🤝 Proveedores Nacionales</h2><span class="sh-sub">Pagos a proveedores · Junio 2026</span></div>
+  <div class="cards">
+    <div class="card accent"><div class="c-label">Total Proveedores</div><div class="c-val">$800,000</div></div>
+    <div class="card"><div class="c-label">Empresas</div><div class="c-val">5</div><div class="c-sub">Fecha: 15/06/2026</div></div>
+  </div>
+  <div class="tbl-wrap">
+    <table>
+      <thead><tr><th>Empresa</th><th class="num">Monto</th><th>Fecha Pago</th></tr></thead>
+      <tbody id="tbody-prov"></tbody>
+    </table>
+  </div>
+</div>
 
-    <!-- ============ RESUMEN ============ -->
-    <div id="panel-resumen" class="panel active">
-      <div class="page-header">
-        <h2>Resumen Financiero</h2>
-        <p>Consolidado de obligaciones, flujos y compromisos · Actualizado 12 Jun 2026</p>
-      </div>
+<!-- IMPUESTOS -->
+<div id="s-imp" class="section">
+  <div class="sec-header"><h2>🔒 Impuestos Garantizados SENAE</h2><span class="sh-sub">CORPORACION JCEVCORP CIA. LTDA. · 18 liquidaciones · Vencimiento 04/08/2026</span></div>
+  <div class="cards">
+    <div class="card danger"><div class="c-label">Total a Pagar</div><div class="c-val">$901,488.15</div><div class="c-sub">18 liquidaciones SENAE · NO PAGADO</div></div>
+    <div class="card warn"><div class="c-label">Fecha Liquidación</div><div class="c-val" style="font-size:16px">31/07/2026</div><div class="c-sub">Vencimiento: 04/08/2026</div></div>
+    <div class="card"><div class="c-label">Contribuyente</div><div class="c-val" style="font-size:12px">CORPORACION JCEVCORP</div><div class="c-sub">CIA. LTDA.</div></div>
+  </div>
+  <div class="tbl-wrap">
+    <table>
+      <thead><tr><th>#</th><th>N° Liquidación</th><th>Estado</th><th>Fecha Liq.</th><th>Contribuyente</th><th class="num">Valor Liquidado</th><th>Vencimiento</th></tr></thead>
+      <tbody id="tbody-imp"></tbody>
+    </table>
+  </div>
+</div>
 
-      <div class="alert">⚠️ JCEVCORP / PRODUBANCO — Obligación de $1,034,044 venció el 22 Abr 2026 · PENDIENTE DE PAGO</div>
+<!-- CALENDARIO -->
+<div id="s-cal" class="section">
+  <div class="sec-header"><h2>📅 Calendario Consolidado</h2><span class="sh-sub">Todos los pagos y vencimientos</span></div>
+  <div id="cal-pills">
+    <span class="pill active" data-val="" onclick="togglePill(this)">Todos</span>
+    <span class="pill" data-val="Obligación" onclick="togglePill(this)">🏦 Obligación</span>
+    <span class="pill" data-val="Amort. TA" onclick="togglePill(this)">📉 Amort. TA</span>
+    <span class="pill" data-val="Imp. JCEV" onclick="togglePill(this)">📦 Imp. JCEV</span>
+    <span class="pill" data-val="Imp. CONSUREP" onclick="togglePill(this)">📦 Imp. CONSUREP</span>
+    <span class="pill" data-val="Imp. TODOMOTO" onclick="togglePill(this)">📦 Imp. TODOMOTO</span>
+    <span class="pill" data-val="Imp. CREDIMPORT" onclick="togglePill(this)">🚚 Imp. CREDIMPORT</span>
+    <span class="pill" data-val="Imp. ASSEMBLY" onclick="togglePill(this)">🏍️ Imp. ASSEMBLY</span>
+    <span class="pill" data-val="SRI" onclick="togglePill(this)">🧾 SRI</span>
+    <span class="pill" data-val="Nómina" onclick="togglePill(this)">👥 Nómina</span>
+    <span class="pill" data-val="Proveedores" onclick="togglePill(this)">🤝 Proveedores</span>
+    <span class="pill" data-val="Imp. Garantizado" onclick="togglePill(this)">🔒 SENAE</span>
+  </div>
+  <div class="cal-filters">
+    <select id="f-emp" onchange="renderCal()">
+      <option value="">Todas las empresas</option>
+      <option>JCEVCORP</option><option>ASSEMBLY</option><option>FULLMOTOS</option>
+      <option>CREDIMPORT</option><option>CONSUREP</option><option>TODOMOTO</option><option>MONTAZ</option>
+    </select>
+    <select id="f-mes" onchange="renderCal()">
+      <option value="">Todos los meses</option>
+      <option value="2026-06">Junio 2026</option><option value="2026-07">Julio 2026</option>
+      <option value="2026-08">Agosto 2026</option><option value="2026-09">Septiembre 2026</option>
+      <option value="2026-10">Octubre 2026</option><option value="2026-11">Noviembre 2026</option>
+      <option value="2026-12">Diciembre 2026</option><option value="2027-01">Enero 2027</option>
+      <option value="2027-02">Febrero 2027</option><option value="2027-03">Marzo 2027</option>
+      <option value="2027-04">Abril 2027</option><option value="2027-05">Mayo 2027</option>
+      <option value="2027-06">Junio 2027</option>
+    </select>
+  </div>
+  <div id="cal-body"></div>
+</div>
 
-      <div class="kpi-grid">
-        <div class="kpi c-red"><label>Obligaciones Financieras</label><div class="val">$14.43M</div><div class="sub">Capital $13.85M · Interés $572K</div></div>
-        <div class="kpi c-orange"><label>Flujo Importaciones</label><div class="val">$6.97M</div><div class="sub">63 facturas pendientes</div></div>
-        <div class="kpi c-yellow"><label>SRI — Débito Neto Jun</label><div class="val">$377,755</div><div class="sub">Bruto $935,755 · NC $558,000</div></div>
-        <div class="kpi c-purple"><label>Nómina Junio 2026</label><div class="val">$277,298</div><div class="sub">6 empresas · 15 y 30 Jun</div></div>
-        <div class="kpi c-green"><label>Proveedores Nacionales</label><div class="val">$800,000</div><div class="sub">5 empresas · 15 Jun 2026</div></div>
-        <div class="kpi c-blue"><label>Vencim. Junio 2026</label><div class="val">$1.90M</div><div class="sub">5 obligaciones bancarias</div></div>
-      </div>
+</div><!-- /main -->
+</div><!-- /layout -->
 
-      <div class="chart-row">
-        <div class="card"><h3>Cronograma de Obligaciones por Mes</h3><div class="chart-wrap"><canvas id="c-obl-mes"></canvas></div></div>
-        <div class="card"><h3>Flujo Importaciones por Empresa</h3><div class="chart-wrap"><canvas id="c-flujo-pie"></canvas></div></div>
-      </div>
-      <div class="chart-row-2">
-        <div class="card"><h3>SRI por Empresa — Jun 2026</h3><div class="chart-wrap"><canvas id="c-sri"></canvas></div></div>
-        <div class="card"><h3>Nómina por Empresa — Junio</h3><div class="chart-wrap"><canvas id="c-nom"></canvas></div></div>
-      </div>
-
-      <div class="section-title">Vencimientos Críticos — Junio 2026</div>
-      <div class="table-wrap">
-        <table>
-          <thead><tr><th>Empresa</th><th>Concepto</th><th>Detalle</th><th>Fecha</th><th class="num">Monto</th><th>Estado</th></tr></thead>
-          <tbody>
-            <tr><td><span class="emp emp-jcev">JCEVCORP</span></td><td><span class="type type-obl">Obligación</span></td><td>PRODUBANCO (vencida)</td><td>22 Abr 2026</td><td class="num">$1,034,044</td><td><span class="status-vencida">VENCIDA</span></td></tr>
-            <tr><td><span class="emp emp-assembly">ASSEMBLY</span></td><td><span class="type type-obl">Obligación</span></td><td>PICHINCHA PANAMÁ</td><td>11 Jun 2026</td><td class="num">$505,680</td><td><span class="status-pend">PENDIENTE</span></td></tr>
-            <tr><td><span class="emp emp-assembly">ASSEMBLY</span></td><td><span class="type type-sri">SRI</span></td><td>Débito neto $88,636</td><td>11 Jun 2026</td><td class="num">$220,636</td><td><span class="status-pend">PENDIENTE</span></td></tr>
-            <tr><td><span class="emp emp-jcev">JCEVCORP</span></td><td><span class="type type-sri">SRI</span></td><td>Débito neto $254,000</td><td>11 Jun 2026</td><td class="num">$632,000</td><td><span class="status-pend">PENDIENTE</span></td></tr>
-            <tr><td><span class="emp emp-assembly">ASSEMBLY</span></td><td><span class="type type-nom">Nómina</span></td><td>1ª Quincena — 6 empresas</td><td>15 Jun 2026</td><td class="num">$93,205</td><td><span class="status-pend">PENDIENTE</span></td></tr>
-            <tr><td>Todas</td><td><span class="type type-prov">Proveedores</span></td><td>5 empresas</td><td>15 Jun 2026</td><td class="num">$800,000</td><td><span class="status-pend">PENDIENTE</span></td></tr>
-            <tr><td><span class="emp emp-jcev">JCEVCORP</span></td><td><span class="type type-obl">Obligación</span></td><td>PICHINCHA PANAMÁ</td><td>22 Jun 2026</td><td class="num">$486,206</td><td><span class="status-pend">PENDIENTE</span></td></tr>
-            <tr><td><span class="emp emp-assembly">ASSEMBLY</span></td><td><span class="type type-obl">Obligación</span></td><td>EBNA BANK</td><td>22 Jun 2026</td><td class="num">$185,320</td><td><span class="status-pend">PENDIENTE</span></td></tr>
-            <tr><td><span class="emp emp-assembly">ASSEMBLY</span></td><td><span class="type type-obl">Obligación</span></td><td>PICHINCHA PANAMÁ</td><td>24 Jun 2026</td><td class="num">$394,281</td><td><span class="status-pend">PENDIENTE</span></td></tr>
-            <tr><td><span class="emp emp-assembly">ASSEMBLY</span></td><td><span class="type type-obl">Obligación</span></td><td>EBNA BANK</td><td>29 Jun 2026</td><td class="num">$324,393</td><td><span class="status-pend">PENDIENTE</span></td></tr>
-            <tr><td>Todas</td><td><span class="type type-nom">Nómina</span></td><td>2ª Quincena — 6 empresas</td><td>30 Jun 2026</td><td class="num">$184,093</td><td><span class="status-pend">PENDIENTE</span></td></tr>
-          </tbody>
-        </table>
-      </div>
-    </div>
-
-    <!-- ============ OBLIGACIONES ============ -->
-    <div id="panel-obligaciones" class="panel">
-      <div class="page-header"><h2>Obligaciones Financieras</h2><p>Créditos bancarios, papel comercial y líneas de financiamiento</p></div>
-      <div class="kpi-grid">
-        <div class="kpi c-red"><label>Total a Pagar</label><div class="val">$14,426,549</div><div class="sub">Capital + Intereses</div></div>
-        <div class="kpi c-orange"><label>Capital Total</label><div class="val">$13,853,736</div><div class="sub">Monto principal</div></div>
-        <div class="kpi c-blue"><label>Intereses Total</label><div class="val">$572,814</div><div class="sub">Costo financiero</div></div>
-        <div class="kpi c-red"><label>Jun 2026</label><div class="val">$1,895,880</div><div class="sub">5 vencimientos</div></div>
-        <div class="kpi c-red"><label>Ene 2027</label><div class="val">$4,220,000</div><div class="sub">4 Papel Comercial</div></div>
-        <div class="kpi c-purple"><label>Jun 2027</label><div class="val">$4,028,436</div><div class="sub">6 créditos bancarios</div></div>
-      </div>
-      <div class="section-title">Todas las Obligaciones</div>
-      <div class="table-wrap"><table>
-        <thead><tr><th>Empresa</th><th>Banco / Instrumento</th><th>Vencimiento</th><th class="num">Capital</th><th class="num">Interés</th><th class="num">Total</th><th>Tasa</th><th>Estado</th></tr></thead>
-        <tbody id="tb-obl"></tbody>
-      </table></div>
-    </div>
-
-    <!-- ============ AMORTIZACIÓN ============ -->
-    <div id="panel-amortizacion" class="panel">
-      <div class="page-header"><h2>Amortización TA — Tablas de Cuotas</h2><p>8 créditos con tabla de amortización mensual · Total capital $5,900,000</p></div>
-      <div class="kpi-grid">
-        <div class="kpi c-blue"><label>Créditos TA</label><div class="val">8</div><div class="sub">Con tabla de amortización</div></div>
-        <div class="kpi c-orange"><label>JCEVCORP</label><div class="val">5 créditos</div><div class="sub">$4,300,000 capital</div></div>
-        <div class="kpi c-green"><label>ASSEMBLY</label><div class="val">2 créditos</div><div class="sub">$600,000 capital</div></div>
-        <div class="kpi c-purple"><label>FULLMOTOS</label><div class="val">1 crédito</div><div class="sub">$500,000 capital</div></div>
-        <div class="kpi c-red"><label>Cuota mensual aprox.</label><div class="val">~$551K</div><div class="sub">Suma de todas las cuotas</div></div>
-      </div>
-      <div class="two-col">
-        <div>
-          <div class="section-title">T1 · JCEVCORP / PRODUBANCO · $1,000,000 · Vcto 22 Abr 2027</div>
-          <div class="table-wrap"><table>
-            <thead><tr><th>Fecha</th><th class="num">Capital</th><th class="num">Interés</th><th class="num">Cuota</th><th>Estado</th></tr></thead>
-            <tbody id="tb-am1"></tbody>
-          </table></div>
-        </div>
-        <div>
-          <div class="section-title">T2 · FULLMOTOS / PRODUBANCO · $500,000 · Vcto 10 May 2027</div>
-          <div class="table-wrap"><table>
-            <thead><tr><th>Fecha</th><th class="num">Capital</th><th class="num">Interés</th><th class="num">Cuota</th><th>Estado</th></tr></thead>
-            <tbody id="tb-am2"></tbody>
-          </table></div>
-        </div>
-      </div>
-      <div class="two-col">
-        <div>
-          <div class="section-title">T3 · ASSEMBLY / PRODUBANCO · $100,000 · Vcto 05 Jun 2027</div>
-          <div class="table-wrap"><table>
-            <thead><tr><th>Fecha</th><th class="num">Capital</th><th class="num">Interés</th><th class="num">Cuota</th><th>Estado</th></tr></thead>
-            <tbody id="tb-am3"></tbody>
-          </table></div>
-        </div>
-        <div>
-          <div class="section-title">T4 · JCEVCORP / PRODUBANCO · $1,000,000 · Vcto 03 Jun 2027 (A)</div>
-          <div class="table-wrap"><table>
-            <thead><tr><th>Fecha</th><th class="num">Capital</th><th class="num">Interés</th><th class="num">Cuota</th><th>Estado</th></tr></thead>
-            <tbody id="tb-am4"></tbody>
-          </table></div>
-        </div>
-      </div>
-      <div class="two-col">
-        <div>
-          <div class="section-title">T5 · JCEVCORP / INTERNACIONAL · $500,000 · Vcto 03 Jun 2027</div>
-          <div class="table-wrap"><table>
-            <thead><tr><th>Fecha</th><th class="num">Capital</th><th class="num">Interés</th><th class="num">Cuota</th><th>Estado</th></tr></thead>
-            <tbody id="tb-am5"></tbody>
-          </table></div>
-        </div>
-        <div>
-          <div class="section-title">T6 · JCEVCORP / PICHINCHA · $800,000 · Vcto 09 Jun 2027</div>
-          <div class="table-wrap"><table>
-            <thead><tr><th>Fecha</th><th class="num">Capital</th><th class="num">Interés</th><th class="num">Cuota</th><th>Estado</th></tr></thead>
-            <tbody id="tb-am6"></tbody>
-          </table></div>
-        </div>
-      </div>
-      <div class="two-col">
-        <div>
-          <div class="section-title">T7 · ASSEMBLY / PRODUBANCO · $500,000 · Vcto 08 Jun 2027</div>
-          <div class="table-wrap"><table>
-            <thead><tr><th>Fecha</th><th class="num">Capital</th><th class="num">Interés</th><th class="num">Cuota</th><th>Estado</th></tr></thead>
-            <tbody id="tb-am7"></tbody>
-          </table></div>
-        </div>
-        <div>
-          <div class="section-title">T8 · JCEVCORP / PRODUBANCO · $1,000,000 · Vcto 11 Jun 2027 (B)</div>
-          <div class="table-wrap"><table>
-            <thead><tr><th>Fecha</th><th class="num">Capital</th><th class="num">Interés</th><th class="num">Cuota</th><th>Estado</th></tr></thead>
-            <tbody id="tb-am8"></tbody>
-          </table></div>
-        </div>
-      </div>
-    </div>
-
-    <!-- ============ IMPORTACIONES ============ -->
-    <div id="panel-importaciones" class="panel">
-      <div class="page-header"><h2>Flujo de Importaciones</h2><p>Pagos a proveedores internacionales — Junio 2026</p></div>
-      <div class="kpi-grid">
-        <div class="kpi c-blue"><label>Total a Pagar</label><div class="val">$6,971,998</div><div class="sub">63 facturas</div></div>
-        <div class="kpi c-green"><label>ASSEMBLY</label><div class="val">$2,419,153</div><div class="sub">Motocicletas</div></div>
-        <div class="kpi c-purple"><label>CONSUREP</label><div class="val">$2,047,398</div><div class="sub">Paneles / TV</div></div>
-        <div class="kpi c-blue"><label>JCEV</label><div class="val">$2,078,463</div><div class="sub">Electrodomésticos</div></div>
-        <div class="kpi c-teal"><label>TODOMOTO</label><div class="val">$76,986</div><div class="sub">Motocicletas MB</div></div>
-        <div class="kpi c-orange"><label>CREDIMPORT</label><div class="val">$350,000</div><div class="sub">Downpayments</div></div>
-      </div>
-      <div class="section-title">ASSEMBLY — Detalle de Importaciones</div>
-      <div class="table-wrap"><table>
-        <thead><tr><th>Importación / Detalle</th><th>Proveedor</th><th>Vencimiento</th><th class="num">A Pagar</th></tr></thead>
-        <tbody id="tb-asm"></tbody>
-      </table></div>
-      <div class="section-title">JCEV / CONSUREP — Detalle de Importaciones</div>
-      <div class="table-wrap"><table>
-        <thead><tr><th>Empresa</th><th>Importación / Detalle</th><th>Proveedor</th><th>Vencimiento</th><th class="num">A Pagar</th></tr></thead>
-        <tbody id="tb-jcev"></tbody>
-      </table></div>
-      <div class="section-title">CREDIMPORT / TODOMOTO</div>
-      <div class="table-wrap"><table>
-        <thead><tr><th>Empresa</th><th>Importación / Detalle</th><th>Proveedor</th><th>Vencimiento</th><th class="num">A Pagar</th></tr></thead>
-        <tbody id="tb-otros"></tbody>
-      </table></div>
-    </div>
-
-    <!-- ============ SRI ============ -->
-    <div id="panel-sri" class="panel">
-      <div class="page-header"><h2>SRI & Nómina</h2><p>Impuestos, nómina e IESS — Junio 2026</p></div>
-      <div class="section-title">SRI — Impuestos Junio 2026</div>
-      <div class="table-wrap"><table>
-        <thead><tr><th>Empresa</th><th>Banco</th><th>Fecha Pago</th><th class="num">Total SRI</th><th class="num">Nota de Crédito</th><th class="num">Débito Neto</th></tr></thead>
-        <tbody>
-          <tr><td><span class="emp emp-assembly">ASSEMBLY</span></td><td>PICHINCHA</td><td>11 Jun 2026</td><td class="num">$220,636</td><td class="num">$132,000</td><td class="num">$88,636</td></tr>
-          <tr><td><span class="emp emp-jcev">JCEVCORP</span></td><td>PRODUBANCO</td><td>11 Jun 2026</td><td class="num">$632,000</td><td class="num">$378,000</td><td class="num">$254,000</td></tr>
-          <tr><td><span class="emp emp-credimport">CREDIMPORT</span></td><td>PICHINCHA</td><td>16 Jun 2026</td><td class="num">$8,291</td><td class="num">$4,000</td><td class="num">$4,291</td></tr>
-          <tr><td><span class="emp emp-fullmotos">FULLMOTOS</span></td><td>PICHINCHA</td><td>16 Jun 2026</td><td class="num">$74,828</td><td class="num">$44,000</td><td class="num">$30,828</td></tr>
-          <tr class="total-row"><td colspan="3">TOTAL</td><td class="num">$935,755</td><td class="num">$558,000</td><td class="num">$377,755</td></tr>
-        </tbody>
-      </table></div>
-      <div class="two-col">
-        <div>
-          <div class="section-title">Nómina 1ª Quincena — 15 Jun</div>
-          <div class="table-wrap"><table>
-            <thead><tr><th>Empresa</th><th class="num">Monto</th></tr></thead>
-            <tbody>
-              <tr><td><span class="emp emp-assembly">ASSEMBLY</span></td><td class="num">$13,545</td></tr>
-              <tr><td><span class="emp emp-jcev">JCEVCORP</span></td><td class="num">$38,200</td></tr>
-              <tr><td><span class="emp emp-credimport">CREDIMPORT</span></td><td class="num">$14,041</td></tr>
-              <tr><td><span class="emp emp-montaz">MONTAZ</span></td><td class="num">$8,100</td></tr>
-              <tr><td><span class="emp emp-todomoto">TODOMOTO</span></td><td class="num">$5,219</td></tr>
-              <tr><td><span class="emp emp-consurep">CONSUREP</span></td><td class="num">$14,100</td></tr>
-              <tr class="total-row"><td>TOTAL</td><td class="num">$93,205</td></tr>
-            </tbody>
-          </table></div>
-        </div>
-        <div>
-          <div class="section-title">Nómina 2ª Quincena — 30 Jun</div>
-          <div class="table-wrap"><table>
-            <thead><tr><th>Empresa</th><th class="num">Monto</th></tr></thead>
-            <tbody>
-              <tr><td><span class="emp emp-assembly">ASSEMBLY</span></td><td class="num">$20,797</td></tr>
-              <tr><td><span class="emp emp-jcev">JCEVCORP</span></td><td class="num">$95,300</td></tr>
-              <tr><td><span class="emp emp-credimport">CREDIMPORT</span></td><td class="num">$31,659</td></tr>
-              <tr><td><span class="emp emp-montaz">MONTAZ</span></td><td class="num">$12,350</td></tr>
-              <tr><td><span class="emp emp-todomoto">TODOMOTO</span></td><td class="num">$7,487</td></tr>
-              <tr><td><span class="emp emp-consurep">CONSUREP</span></td><td class="num">$16,500</td></tr>
-              <tr class="total-row"><td>TOTAL</td><td class="num">$184,093</td></tr>
-            </tbody>
-          </table></div>
-        </div>
-      </div>
-      <div class="section-title">Nómina Total Junio</div>
-      <div class="table-wrap"><table>
-        <thead><tr><th>Empresa</th><th class="num">1ª Quincena</th><th class="num">2ª Quincena</th><th class="num">Total Mes</th></tr></thead>
-        <tbody>
-          <tr><td><span class="emp emp-assembly">ASSEMBLY</span></td><td class="num">$13,545</td><td class="num">$20,797</td><td class="num">$34,342</td></tr>
-          <tr><td><span class="emp emp-jcev">JCEVCORP</span></td><td class="num">$38,200</td><td class="num">$95,300</td><td class="num">$133,500</td></tr>
-          <tr><td><span class="emp emp-credimport">CREDIMPORT</span></td><td class="num">$14,041</td><td class="num">$31,659</td><td class="num">$45,700</td></tr>
-          <tr><td><span class="emp emp-montaz">MONTAZ</span></td><td class="num">$8,100</td><td class="num">$12,350</td><td class="num">$20,450</td></tr>
-          <tr><td><span class="emp emp-todomoto">TODOMOTO</span></td><td class="num">$5,219</td><td class="num">$7,487</td><td class="num">$12,706</td></tr>
-          <tr><td><span class="emp emp-consurep">CONSUREP</span></td><td class="num">$14,100</td><td class="num">$16,500</td><td class="num">$30,600</td></tr>
-          <tr class="total-row"><td>TOTAL</td><td class="num">$93,205</td><td class="num">$184,093</td><td class="num">$277,298</td></tr>
-        </tbody>
-      </table></div>
-    </div>
-
-    <!-- ============ PROVEEDORES ============ -->
-    <div id="panel-proveedores" class="panel">
-      <div class="page-header"><h2>Proveedores Nacionales</h2><p>Pagos a proveedores nacionales — 15 Jun 2026</p></div>
-      <div class="kpi-grid">
-        <div class="kpi c-blue"><label>Total</label><div class="val">$800,000</div><div class="sub">15 Jun 2026</div></div>
-        <div class="kpi c-green"><label>JCEVCORP</label><div class="val">$350,000</div><div class="sub">43.8%</div></div>
-        <div class="kpi c-purple"><label>ASSEMBLY</label><div class="val">$220,000</div><div class="sub">27.5%</div></div>
-        <div class="kpi c-orange"><label>FULLMOTOS</label><div class="val">$150,000</div><div class="sub">18.8%</div></div>
-        <div class="kpi c-teal"><label>CREDIMPORT</label><div class="val">$60,000</div><div class="sub">7.5%</div></div>
-        <div class="kpi c-yellow"><label>CONSUREP</label><div class="val">$20,000</div><div class="sub">2.5%</div></div>
-      </div>
-      <div class="table-wrap"><table>
-        <thead><tr><th>Empresa</th><th>Fecha de Pago</th><th class="num">Monto</th><th style="min-width:160px">% del Total</th></tr></thead>
-        <tbody>
-          <tr><td><span class="emp emp-jcev">JCEVCORP</span></td><td>15 Jun 2026</td><td class="num">$350,000</td><td><div>43.8%</div><div class="pbar"><div class="pbar-fill" style="width:43.8%;background:var(--accent)"></div></div></td></tr>
-          <tr><td><span class="emp emp-assembly">ASSEMBLY</span></td><td>15 Jun 2026</td><td class="num">$220,000</td><td><div>27.5%</div><div class="pbar"><div class="pbar-fill" style="width:27.5%;background:var(--green)"></div></div></td></tr>
-          <tr><td><span class="emp emp-fullmotos">FULLMOTOS</span></td><td>15 Jun 2026</td><td class="num">$150,000</td><td><div>18.8%</div><div class="pbar"><div class="pbar-fill" style="width:18.8%;background:var(--text2)"></div></div></td></tr>
-          <tr><td><span class="emp emp-credimport">CREDIMPORT</span></td><td>15 Jun 2026</td><td class="num">$60,000</td><td><div>7.5%</div><div class="pbar"><div class="pbar-fill" style="width:7.5%;background:var(--orange)"></div></div></td></tr>
-          <tr><td><span class="emp emp-consurep">CONSUREP</span></td><td>15 Jun 2026</td><td class="num">$20,000</td><td><div>2.5%</div><div class="pbar"><div class="pbar-fill" style="width:2.5%;background:var(--purple)"></div></div></td></tr>
-          <tr class="total-row"><td colspan="2">TOTAL</td><td class="num">$800,000</td><td>100%</td></tr>
-        </tbody>
-      </table></div>
-    </div>
-
-    <!-- ============ CALENDARIO ============ -->
-    <div id="panel-calendario" class="panel">
-      <div class="page-header">
-        <h2>Calendario Consolidado</h2>
-        <p>Todos los compromisos de pago · Pendientes</p>
-      </div>
-
-      <div class="cal-filters">
-        <div class="filter-group" style="flex-wrap:wrap;gap:6px">
-          <span class="filter-label">Tipo</span>
-          <div class="pills-wrap" id="tipo-pills">
-            <span class="pill active" data-val="" onclick="togglePill(this)">Todo</span>
-            <span class="pill p-obl" data-val="Obligación" onclick="togglePill(this)">Obligación</span>
-            <span class="pill p-amort" data-val="Amortización TA" onclick="togglePill(this)">Amortización TA</span>
-            <span class="pill p-imp" data-val="Importación" onclick="togglePill(this)">Importación</span>
-            <span class="pill p-sri" data-val="SRI" onclick="togglePill(this)">SRI</span>
-            <span class="pill p-nom" data-val="Nómina" onclick="togglePill(this)">Nómina</span>
-            <span class="pill p-prov" data-val="Proveedores" onclick="togglePill(this)">Proveedores</span>
-          </div>
-        </div>
-        <div class="filter-group">
-          <span class="filter-label">Empresa</span>
-          <select class="filter-select" id="f-emp" onchange="renderCal()">
-            <option value="">Todas</option>
-            <option value="JCEVCORP">JCEVCORP</option>
-            <option value="ASSEMBLY">ASSEMBLY</option>
-            <option value="CONSUREP">CONSUREP</option>
-            <option value="CREDIMPORT">CREDIMPORT</option>
-            <option value="FULLMOTOS">FULLMOTOS</option>
-            <option value="TODOMOTO">TODOMOTO</option>
-            <option value="MONTAZ">MONTAZ</option>
-          </select>
-        </div>
-        <div class="filter-group">
-          <span class="filter-label">Mes</span>
-          <select class="filter-select" id="f-mes" onchange="renderCal()">
-            <option value="">Todos</option>
-            <option value="2026-04">Abr 2026</option>
-            <option value="2026-06" selected>Jun 2026</option>
-            <option value="2026-07">Jul 2026</option>
-            <option value="2026-08">Ago 2026</option>
-            <option value="2026-09">Sep 2026</option>
-            <option value="2026-10">Oct 2026</option>
-            <option value="2026-11">Nov 2026</option>
-            <option value="2026-12">Dic 2026</option>
-            <option value="2027-01">Ene 2027</option>
-            <option value="2027-02">Feb 2027</option>
-            <option value="2027-03">Mar 2027</option>
-            <option value="2027-04">Abr 2027</option>
-            <option value="2027-05">May 2027</option>
-            <option value="2027-06">Jun 2027</option>
-          </select>
-        </div>
-      </div>
-
-      <div class="cal-summary" id="cal-summary"></div>
-      <div id="cal-list"></div>
-    </div>
-
-  </div><!-- end content -->
-</div><!-- end layout -->
+<div id="toast"></div>
 
 <script>
-// ======================== DATA ========================
+// ============================================================
+// DATA
+// ============================================================
+const oblData=[{"empresa": "JCEVCORP", "inst": "PRODUBANCO", "vcto": "2026-04-22", "capital": 1000000, "cuotas": "TA", "int": 34044.31, "total": 1034044.31, "tasa": 6.0, "estado": "PENDIENTE"}, {"empresa": "ASSEMBLY", "inst": "PICHINCHA PANAMA", "vcto": "2026-06-11", "capital": 490000, "cuotas": 490000, "int": 15680, "total": 505680, "tasa": 6.0, "estado": "PENDIENTE"}, {"empresa": "JCEVCORP", "inst": "PICHINCHA PANAMA", "vcto": "2026-06-22", "capital": 478000, "cuotas": 478000, "int": 8205.67, "total": 486205.67, "tasa": 6.0, "estado": "PENDIENTE"}, {"empresa": "ASSEMBLY", "inst": "EBNA BANK", "vcto": "2026-06-22", "capital": 180000, "cuotas": 180000, "int": 5320, "total": 185320, "tasa": 5.6, "estado": "PENDIENTE"}, {"empresa": "ASSEMBLY", "inst": "PICHINCHA PANAMA", "vcto": "2026-06-24", "capital": 387500, "cuotas": 387500, "int": 6781.25, "total": 394281.25, "tasa": 6.0, "estado": "PENDIENTE"}, {"empresa": "ASSEMBLY", "inst": "EBNA BANK", "vcto": "2026-06-29", "capital": 314605, "cuotas": 314605, "int": 9787.73, "total": 324392.73, "tasa": 7.0, "estado": "PENDIENTE"}, {"empresa": "ASSEMBLY", "inst": "EBNA BANK", "vcto": "2026-07-01", "capital": 556000, "cuotas": 556000, "int": 18487, "total": 574487, "tasa": 5.7, "estado": "PENDIENTE"}, {"empresa": "ASSEMBLY", "inst": "EBNA BANK", "vcto": "2026-07-08", "capital": 358494.29, "cuotas": 358494.29, "int": 10595, "total": 369089.29, "tasa": 5.6, "estado": "PENDIENTE"}, {"empresa": "ASSEMBLY", "inst": "PICHINCHA PANAMA", "vcto": "2026-08-20", "capital": 87500, "cuotas": 87500, "int": 1341.67, "total": 88841.67, "tasa": 6.0, "estado": "PENDIENTE"}, {"empresa": "JCEVCORP", "inst": "ST GEORGES", "vcto": "2026-09-28", "capital": 700000, "cuotas": 700000, "int": 55304.86, "total": 755304.86, "tasa": 7.75, "estado": "PENDIENTE"}, {"empresa": "ASSEMBLY", "inst": "EBNA BANK", "vcto": "2026-09-30", "capital": 180000, "cuotas": 180000, "int": 5320, "total": 185320, "tasa": 5.6, "estado": "PENDIENTE"}, {"empresa": "JCEVCORP", "inst": "BOLIVARIANO", "vcto": "2026-10-05", "capital": 521636.28, "cuotas": 521636.28, "int": 15865.8, "total": 537502.08, "tasa": 6.0, "estado": "PENDIENTE"}, {"empresa": "JCEVCORP", "inst": "EBNA BANK", "vcto": "2026-11-05", "capital": 200000, "cuotas": 200000, "int": 20000, "total": 220000, "tasa": 5.6, "estado": "PENDIENTE"}, {"empresa": "JCEVCORP", "inst": "PAPEL COMERCIAL", "vcto": "2027-01-11", "capital": 750000, "cuotas": 750000, "int": 41250, "total": 791250, "tasa": 5.5, "estado": "PENDIENTE"}, {"empresa": "JCEVCORP", "inst": "PAPEL COMERCIAL", "vcto": "2027-01-19", "capital": 500000, "cuotas": 500000, "int": 27500, "total": 527500, "tasa": 5.5, "estado": "PENDIENTE"}, {"empresa": "JCEVCORP", "inst": "PAPEL COMERCIAL", "vcto": "2027-01-21", "capital": 750000, "cuotas": 750000, "int": 41250, "total": 791250, "tasa": 5.5, "estado": "PENDIENTE"}, {"empresa": "JCEVCORP", "inst": "PAPEL COMERCIAL", "vcto": "2027-01-25", "capital": 2000000, "cuotas": 2000000, "int": 110000, "total": 2110000, "tasa": 5.5, "estado": "PENDIENTE"}, {"empresa": "FULLMOTOS", "inst": "PRODUBANCO", "vcto": "2027-05-10", "capital": 500000, "cuotas": "TA", "int": 17644.02, "total": 517644.02, "tasa": 6.25, "estado": "PENDIENTE"}, {"empresa": "ASSEMBLY", "inst": "PRODUBANCO", "vcto": "2027-06-05", "capital": 100000, "cuotas": "TA", "int": 3496.05, "total": 103496.05, "tasa": 6.25, "estado": "PENDIENTE"}, {"empresa": "JCEVCORP", "inst": "PRODUBANCO", "vcto": "2027-06-03", "capital": 1000000, "cuotas": "TA", "int": 33734.39, "total": 1033734.39, "tasa": 6.0, "estado": "PENDIENTE"}, {"empresa": "JCEVCORP", "inst": "INTERNACIONAL", "vcto": "2027-06-03", "capital": 500000, "cuotas": "TA", "int": 16147.45, "total": 516147.45, "tasa": 6.06, "estado": "PENDIENTE"}, {"empresa": "JCEVCORP", "inst": "PICHINCHA", "vcto": "2027-06-09", "capital": 800000, "cuotas": "TA", "int": 24968.75, "total": 824968.75, "tasa": 5.7, "estado": "PENDIENTE"}, {"empresa": "ASSEMBLY", "inst": "PRODUBANCO", "vcto": "2027-06-08", "capital": 500000, "cuotas": "TA", "int": 16710.62, "total": 516710.62, "tasa": 6.0, "estado": "PENDIENTE"}, {"empresa": "JCEVCORP", "inst": "PRODUBANCO", "vcto": "2027-06-11", "capital": 1000000, "cuotas": "TA", "int": 33378.93, "total": 1033378.93, "tasa": 6.0, "estado": "PENDIENTE"}];
+const amortData=[{"id": "T1", "empresa": "JCEVCORP", "inst": "PRODUBANCO", "monto": 1000000, "vcto": "2027-04-22", "rows": [{"fecha": "2026-06-22", "capital": 81304.63, "int": 4865.73, "cuota": 86170.36}, {"fecha": "2026-07-22", "capital": 81878.28, "int": 4292.08, "cuota": 86170.36}, {"fecha": "2026-08-22", "capital": 81910.66, "int": 4259.7, "cuota": 86170.36}, {"fecha": "2026-09-22", "capital": 82832.79, "int": 3337.57, "cuota": 86170.36}, {"fecha": "2026-10-22", "capital": 83142.22, "int": 3028.14, "cuota": 86170.36}, {"fecha": "2026-11-22", "capital": 83394.85, "int": 2775.51, "cuota": 86170.36}, {"fecha": "2026-12-22", "capital": 84068.21, "int": 2102.15, "cuota": 86170.36}, {"fecha": "2027-01-22", "capital": 84368.44, "int": 1801.92, "cuota": 86170.36}, {"fecha": "2027-02-22", "capital": 84815.24, "int": 1355.12, "cuota": 86170.36}, {"fecha": "2027-03-22", "capital": 85352.08, "int": 818.28, "cuota": 86170.36}, {"fecha": "2027-04-22", "capital": 85716.41, "int": 453.94, "cuota": 86170.35}]}, {"id": "T2", "empresa": "FULLMOTOS", "inst": "PRODUBANCO", "monto": 500000, "vcto": "2027-05-10", "rows": [{"fecha": "2026-07-06", "capital": 40742.59, "int": 2394.41, "cuota": 43137.0}, {"fecha": "2026-08-11", "capital": 40663.82, "int": 2473.18, "cuota": 43137.0}, {"fecha": "2026-09-08", "capital": 41297.94, "int": 1839.06, "cuota": 43137.0}, {"fecha": "2026-10-08", "capital": 41381.67, "int": 1755.33, "cuota": 43137.0}, {"fecha": "2026-11-09", "capital": 41494.55, "int": 1642.45, "cuota": 43137.0}, {"fecha": "2026-12-08", "capital": 41857.44, "int": 1279.56, "cuota": 43137.0}, {"fecha": "2027-01-08", "capital": 41994.47, "int": 1142.53, "cuota": 43137.0}, {"fecha": "2027-02-10", "capital": 42161.35, "int": 975.65, "cuota": 43137.0}, {"fecha": "2027-03-08", "capital": 42558.62, "int": 578.38, "cuota": 43137.0}, {"fecha": "2027-04-08", "capital": 42676.44, "int": 460.56, "cuota": 43137.0}, {"fecha": "2027-05-10", "capital": 42898.69, "int": 238.33, "cuota": 43137.02}]}, {"id": "T3", "empresa": "ASSEMBLY", "inst": "PRODUBANCO", "monto": 100000, "vcto": "2027-06-05", "rows": [{"fecha": "2026-06-08", "capital": 8051.75, "int": 572.92, "cuota": 8624.67}, {"fecha": "2026-07-06", "capital": 8177.7, "int": 446.97, "cuota": 8624.67}, {"fecha": "2026-08-06", "capital": 8173.82, "int": 450.85, "cuota": 8624.67}, {"fecha": "2026-09-07", "capital": 8204.69, "int": 419.98, "cuota": 8624.67}, {"fecha": "2026-10-06", "capital": 8285.37, "int": 339.3, "cuota": 8624.67}, {"fecha": "2026-11-06", "capital": 8306.56, "int": 318.11, "cuota": 8624.67}, {"fecha": "2026-12-07", "capital": 8351.27, "int": 273.4, "cuota": 8624.67}, {"fecha": "2027-01-06", "capital": 8403.58, "int": 221.09, "cuota": 8624.67}, {"fecha": "2027-02-10", "capital": 8417.8, "int": 206.87, "cuota": 8624.67}, {"fecha": "2027-03-08", "capital": 8508.99, "int": 115.68, "cuota": 8624.67}, {"fecha": "2027-04-06", "capital": 8538.48, "int": 86.19, "cuota": 8624.67}, {"fecha": "2027-05-06", "capital": 8579.99, "int": 44.69, "cuota": 8624.68}]}, {"id": "T4", "empresa": "JCEVCORP", "inst": "PRODUBANCO", "monto": 1000000, "vcto": "2027-06-03", "rows": [{"fecha": "2026-07-03", "capital": 80811.29, "int": 5333.33, "cuota": 86144.62}, {"fecha": "2026-08-03", "capital": 81395.48, "int": 4749.14, "cuota": 86144.62}, {"fecha": "2026-09-03", "capital": 81816.02, "int": 4328.6, "cuota": 86144.62}, {"fecha": "2026-10-05", "capital": 82112.74, "int": 4031.88, "cuota": 86144.62}, {"fecha": "2026-11-04", "capital": 82775.3, "int": 3368.32, "cuota": 86143.62}, {"fecha": "2026-12-03", "capital": 83287.69, "int": 2856.93, "cuota": 86144.62}, {"fecha": "2027-01-04", "capital": 83436.35, "int": 2708.27, "cuota": 86144.62}, {"fecha": "2027-02-03", "capital": 84022.79, "int": 2121.83, "cuota": 86144.62}, {"fecha": "2027-03-03", "capital": 84556.36, "int": 1588.26, "cuota": 86144.62}, {"fecha": "2027-04-05", "capital": 84737.8, "int": 1406.82, "cuota": 86144.62}, {"fecha": "2027-05-03", "capital": 85346.4, "int": 798.22, "cuota": 86144.62}, {"fecha": "2027-06-03", "capital": 85701.78, "int": 442.79, "cuota": 86144.57}]}, {"id": "T5", "empresa": "JCEVCORP", "inst": "INTERNACIONAL", "monto": 500000, "vcto": "2027-06-03", "rows": [{"fecha": "2026-07-03", "capital": 40564.63, "int": 2458.33, "cuota": 43022.96}, {"fecha": "2026-08-03", "capital": 40764.07, "int": 2258.89, "cuota": 43022.96}, {"fecha": "2026-09-03", "capital": 40895.88, "int": 2127.08, "cuota": 43022.96}, {"fecha": "2026-10-05", "capital": 41227.48, "int": 1795.48, "cuota": 43022.96}, {"fecha": "2026-11-04", "capital": 41368.27, "int": 1654.59, "cuota": 43022.86}, {"fecha": "2026-12-03", "capital": 41474.91, "int": 1548.05, "cuota": 43022.96}, {"fecha": "2027-01-04", "capital": 41858.74, "int": 1164.22, "cuota": 43022.96}, {"fecha": "2027-02-03", "capital": 41981.38, "int": 1041.58, "cuota": 43022.96}, {"fecha": "2027-03-03", "capital": 42187.79, "int": 835.17, "cuota": 43022.96}, {"fecha": "2027-04-05", "capital": 42374.29, "int": 648.67, "cuota": 43022.96}, {"fecha": "2027-05-03", "capital": 42617.54, "int": 405.42, "cuota": 43022.96}, {"fecha": "2027-06-03", "capital": 42685.02, "int": 209.87, "cuota": 42894.89}]}, {"id": "T6", "empresa": "JCEVCORP", "inst": "PICHINCHA", "monto": 800000, "vcto": "2027-06-09", "rows": [{"fecha": "2026-07-09", "capital": 64942.88, "int": 3800.0, "cuota": 68742.88}, {"fecha": "2026-08-08", "capital": 65251.36, "int": 3491.52, "cuota": 68742.88}, {"fecha": "2026-09-07", "capital": 65561.3, "int": 3181.58, "cuota": 68742.88}, {"fecha": "2026-10-07", "capital": 65872.72, "int": 2870.16, "cuota": 68742.88}, {"fecha": "2026-11-06", "capital": 66185.62, "int": 2557.27, "cuota": 68742.89}, {"fecha": "2026-12-06", "capital": 66500.0, "int": 2242.89, "cuota": 68742.89}, {"fecha": "2027-01-05", "capital": 66815.87, "int": 1927.01, "cuota": 68742.88}, {"fecha": "2027-02-04", "capital": 67133.25, "int": 1609.63, "cuota": 68742.88}, {"fecha": "2027-03-03", "capital": 67452.13, "int": 1290.75, "cuota": 68742.88}, {"fecha": "2027-04-05", "capital": 67772.53, "int": 970.35, "cuota": 68742.88}, {"fecha": "2027-05-05", "capital": 68094.45, "int": 648.43, "cuota": 68742.88}, {"fecha": "2027-06-09", "capital": 68417.89, "int": 379.15, "cuota": 68797.04}]}, {"id": "T7", "empresa": "ASSEMBLY", "inst": "PRODUBANCO", "monto": 500000, "vcto": "2027-06-08", "rows": [{"fecha": "2026-07-08", "capital": 40559.22, "int": 2500.0, "cuota": 43059.22}, {"fecha": "2026-08-11", "capital": 40455.72, "int": 2603.5, "cuota": 43059.22}, {"fecha": "2026-09-08", "capital": 41103.96, "int": 1955.26, "cuota": 43059.22}, {"fecha": "2026-10-08", "capital": 41169.81, "int": 1889.41, "cuota": 43059.22}, {"fecha": "2026-11-09", "capital": 41263.43, "int": 1795.79, "cuota": 43059.22}, {"fecha": "2026-12-08", "capital": 41631.22, "int": 1428.0, "cuota": 43059.22}, {"fecha": "2027-01-08", "capital": 41747.83, "int": 1311.39, "cuota": 43059.22}, {"fecha": "2027-02-10", "capital": 41892.84, "int": 1166.38, "cuota": 43059.22}, {"fecha": "2027-03-08", "capital": 42321.79, "int": 737.43, "cuota": 43059.22}, {"fecha": "2027-04-08", "capital": 42398.64, "int": 660.58, "cuota": 43059.22}, {"fecha": "2027-05-10", "capital": 42603.46, "int": 455.76, "cuota": 43059.22}, {"fecha": "2027-06-08", "capital": 42852.08, "int": 207.12, "cuota": 43059.2}]}, {"id": "T8", "empresa": "JCEVCORP", "inst": "PRODUBANCO", "monto": 1000000, "vcto": "2027-06-11", "rows": [{"fecha": "2026-07-13", "capital": 80781.58, "int": 5333.33, "cuota": 86114.91}, {"fecha": "2026-08-11", "capital": 81672.02, "int": 4442.89, "cuota": 86114.91}, {"fecha": "2026-09-11", "capital": 81787.59, "int": 4327.32, "cuota": 86114.91}, {"fecha": "2026-10-12", "capital": 82210.16, "int": 3904.75, "cuota": 86114.91}, {"fecha": "2026-11-11", "capital": 82747.17, "int": 3367.74, "cuota": 86114.91}, {"fecha": "2026-12-11", "capital": 83160.9, "int": 2954.01, "cuota": 86114.91}, {"fecha": "2027-01-11", "capital": 83492.1, "int": 2622.81, "cuota": 86114.91}, {"fecha": "2027-02-11", "capital": 83923.48, "int": 2191.43, "cuota": 86114.91}, {"fecha": "2027-03-11", "capital": 84527.19, "int": 1587.72, "cuota": 86114.91}, {"fecha": "2027-04-13", "capital": 84708.57, "int": 1406.34, "cuota": 86114.91}, {"fecha": "2027-05-11", "capital": 85316.96, "int": 797.95, "cuota": 86114.91}, {"fecha": "2027-06-11", "capital": 85672.28, "int": 442.64, "cuota": 86114.92}]}];
+const jcevData=[{"empresa": "JCEVCORP", "prov": "DOWNPAYMENTS", "imp": "DOWNPAYMENTS", "merch": "ANTICIPO", "total": 0, "anticipo": 0, "valor": 450000, "vcto": "2026-06-01", "ejec": "DOWNPAYMENT"}, {"empresa": "JCEVCORP", "prov": "COBY", "imp": "COBY 05-2025", "merch": "PARLANTES", "total": 28500, "anticipo": 8550, "valor": 19950, "vcto": "2026-06-01", "ejec": "GS"}, {"empresa": "CONSUREP", "prov": "KONKA", "imp": "KONKA 06-2025", "merch": "PANEL", "total": 264213.8, "anticipo": 0, "valor": 264213.8, "vcto": "2026-06-02", "ejec": "AH"}, {"empresa": "CONSUREP", "prov": "KONKA", "imp": "KONKA 06-2025", "merch": "INTEREST", "total": 3170.56, "anticipo": 0, "valor": 3170.56, "vcto": "2026-06-02", "ejec": "AH"}, {"empresa": "JCEVCORP", "prov": "LG ELECTRONICS", "imp": "LG 10A-2026/2000046483", "merch": "SECADORA", "total": 38580, "anticipo": 0, "valor": 38580, "vcto": "2026-06-04", "ejec": "RLL"}, {"empresa": "CONSUREP", "prov": "ALL DISTRIBUTION PANEL", "imp": "AD 07-2026/10379", "merch": "PANEL", "total": 551073.09, "anticipo": 449082.76, "valor": 101990.33, "vcto": "2026-06-04", "ejec": "AH"}, {"empresa": "JCEVCORP", "prov": "TERCELO TIRE", "imp": "TRANSMATE 03-2026", "merch": "LLANTAS", "total": 91793.8, "anticipo": 27538.14, "valor": 64255.66, "vcto": "2026-06-05", "ejec": "AH"}, {"empresa": "JCEVCORP", "prov": "TERCELO TIRE", "imp": "TRANSMATE 04-2026", "merch": "LLANTAS", "total": 98469.8, "anticipo": 29540.9, "valor": 68928.9, "vcto": "2026-06-05", "ejec": "AH"}, {"empresa": "JCEVCORP", "prov": "MEILING", "imp": "MEILING 05-2026", "merch": "REFRIGERADORAS", "total": 78534, "anticipo": 20153, "valor": 58381, "vcto": "2026-06-05", "ejec": "GS"}, {"empresa": "JCEVCORP", "prov": "XING", "imp": "XING 01-2026", "merch": "VITRINA XLS", "total": 9342, "anticipo": 1870, "valor": 7472, "vcto": "2026-06-05", "ejec": "GS"}, {"empresa": "JCEVCORP", "prov": "HOME ELEMENTS", "imp": "HOME 02-2026", "merch": "ELECTROMENOR", "total": 39172.8, "anticipo": 0, "valor": 39172.8, "vcto": "2026-06-06", "ejec": "RLL"}, {"empresa": "JCEVCORP", "prov": "LG ELECTRONICS", "imp": "LG 11-2026/2000046540", "merch": "LAVADORAS", "total": 75600, "anticipo": 0, "valor": 75600, "vcto": "2026-06-07", "ejec": "RLL"}, {"empresa": "JCEVCORP", "prov": "HOUSEHOLD SOLUTIONS", "imp": "OSTER 26-2025/23-2025", "merch": "REFRIGERADORA 215", "total": 54497, "anticipo": 16349.5, "valor": 38147.5, "vcto": "2026-06-07", "ejec": "GS"}, {"empresa": "JCEVCORP", "prov": "TAIZHOU QINLI MACHINERY", "imp": "QINLI 01-2026", "merch": "FUMIGADORAS", "total": 52195, "anticipo": 10000, "valor": 42195, "vcto": "2026-06-07", "ejec": ""}, {"empresa": "JCEVCORP", "prov": "HOME ELEMENTS", "imp": "HOME 04-2026", "merch": "ELECTROMENOR", "total": 32140, "anticipo": 0, "valor": 32140, "vcto": "2026-06-08", "ejec": "RLL"}, {"empresa": "CONSUREP", "prov": "EXPRESS LUCK", "imp": "EXPRESS LUCK 01-2026", "merch": "TV PARTS", "total": 3879473.5, "anticipo": 2201450.5, "valor": 1678023, "vcto": "2026-06-08", "ejec": "AH"}, {"empresa": "JCEVCORP", "prov": "SHANFENG", "imp": "SHANFENG 02-2026", "merch": "REGULADORES", "total": 37750, "anticipo": 11325, "valor": 26425, "vcto": "2026-06-10", "ejec": "GS"}, {"empresa": "JCEVCORP", "prov": "ITT", "imp": "ITT 01-2026", "merch": "LAVADORAS", "total": 43800, "anticipo": 4470, "valor": 39330, "vcto": "2026-06-10", "ejec": "GS"}, {"empresa": "JCEVCORP", "prov": "LAMO", "imp": "LAMO 01-2026", "merch": "DISPENSADORES", "total": 27225, "anticipo": 8167.5, "valor": 19057.5, "vcto": "2026-06-10", "ejec": "RLL"}, {"empresa": "JCEVCORP", "prov": "MINSHENG", "imp": "MINSHENG 01-2026", "merch": "COCINAS", "total": 36487, "anticipo": 10946.1, "valor": 25540.9, "vcto": "2026-06-10", "ejec": "RLL"}, {"empresa": "JCEVCORP", "prov": "HOME ELEMENTS", "imp": "HOME 03-2026", "merch": "ELECTROMENOR", "total": 34299.2, "anticipo": 0, "valor": 34299.2, "vcto": "2026-06-10", "ejec": "RLL"}, {"empresa": "JCEVCORP", "prov": "LG ELECTRONICS", "imp": "LG 12-2026/2000046787", "merch": "LAVADORAS", "total": 107100, "anticipo": 0, "valor": 107100, "vcto": "2026-06-11", "ejec": "RLL"}, {"empresa": "JCEVCORP", "prov": "KONKA", "imp": "KONKA 06-2025", "merch": "MB", "total": 180559.2, "anticipo": 90280, "valor": 90279.2, "vcto": "2026-06-11", "ejec": "AH"}, {"empresa": "JCEVCORP", "prov": "KONKA", "imp": "KONKA 06-2025", "merch": "INTEREST", "total": 2166.71, "anticipo": 0, "valor": 2166.71, "vcto": "2026-06-11", "ejec": "AH"}, {"empresa": "JCEVCORP", "prov": "SICUENS", "imp": "FEDERAL 02-2026", "merch": "LLANTAS", "total": 52080, "anticipo": 15624, "valor": 36456, "vcto": "2026-06-15", "ejec": "AH"}, {"empresa": "JCEVCORP", "prov": "COMPA\u00d1IA HULERA", "imp": "TORNEL 07A-2025", "merch": "LLANTAS", "total": 42838.33, "anticipo": 12851.5, "valor": 29986.83, "vcto": "2026-06-15", "ejec": "AH"}, {"empresa": "JCEVCORP", "prov": "COMPA\u00d1IA HULERA", "imp": "TORNEL 01-2026", "merch": "LLANTAS", "total": 151631.28, "anticipo": 45489.38, "valor": 106141.9, "vcto": "2026-06-15", "ejec": "AH"}, {"empresa": "JCEVCORP", "prov": "COMPA\u00d1IA HULERA", "imp": "TORNEL 02-2026", "merch": "LLANTAS", "total": 203389.4, "anticipo": 61016.82, "valor": 142372.58, "vcto": "2026-06-15", "ejec": "AH"}, {"empresa": "JCEVCORP", "prov": "LONGSONG", "imp": "LONGSONG 01-2026", "merch": "VENTILADORES", "total": 25376.4, "anticipo": 7612.92, "valor": 17763.48, "vcto": "2026-06-15", "ejec": "RLL"}, {"empresa": "JCEVCORP", "prov": "HOME ELEMENTS", "imp": "HOME 01-2026", "merch": "ELECTROMENOR", "total": 27550.5, "anticipo": 0, "valor": 27550.5, "vcto": "2026-06-16", "ejec": "RLL"}, {"empresa": "JCEVCORP", "prov": "LG ELECTRONICS", "imp": "LG 13A-2026/2000047062", "merch": "REFRIGERADORA", "total": 32900, "anticipo": 0, "valor": 32900, "vcto": "2026-06-17", "ejec": "RLL"}, {"empresa": "TODOMOTO", "prov": "ALL DISTRIBUTION MB", "imp": "AD 07-2026/10378", "merch": "MB", "total": 183695.44, "anticipo": 106709.74, "valor": 76985.7, "vcto": "2026-06-18", "ejec": "AH"}, {"empresa": "JCEVCORP", "prov": "MINFU", "imp": "MINFU 01-2026", "merch": "PARLANTES", "total": 54974.98, "anticipo": 17047.11, "valor": 37927.87, "vcto": "2026-06-20", "ejec": "RLL"}, {"empresa": "JCEVCORP", "prov": "LG ELECTRONICS", "imp": "LG 13-2026/2000047237", "merch": "REFRIGERADORA", "total": 24000, "anticipo": 0, "valor": 24000, "vcto": "2026-06-22", "ejec": "RLL"}, {"empresa": "JCEVCORP", "prov": "BEST CHOICE INT'L", "imp": "MAZZINI 03A-2026", "merch": "LLANTAS", "total": 131235.54, "anticipo": 0, "valor": 131235.54, "vcto": "2026-06-22", "ejec": "AH"}, {"empresa": "JCEVCORP", "prov": "BEST CHOICE INT'L", "imp": "MAZZINI 04-2026", "merch": "LLANTAS", "total": 57098.15, "anticipo": 0, "valor": 57098.15, "vcto": "2026-06-24", "ejec": "AH"}, {"empresa": "JCEVCORP", "prov": "TAIZHOU GUANGFENG PLASTIC", "imp": "GUANGFENG 01-2026", "merch": "SEMBRADORAS/FUMIGADORA", "total": 17995, "anticipo": 5386.5, "valor": 12608.5, "vcto": "2026-06-24", "ejec": ""}, {"empresa": "JCEVCORP", "prov": "KUMHO", "imp": "KUMHO 01A-2026", "merch": "LLANTAS", "total": 42360.8, "anticipo": 0, "valor": 42360.8, "vcto": "2026-06-26", "ejec": "AH"}, {"empresa": "JCEVCORP", "prov": "HOUSEHOLD SOLUTIONS", "imp": "OSTER 24-2025", "merch": "DISPENSADOR DE AGUA", "total": 36792, "anticipo": 11038, "valor": 25754, "vcto": "2026-06-28", "ejec": "GS"}, {"empresa": "JCEVCORP", "prov": "XING", "imp": "XING 02-2026", "merch": "SD", "total": 23988, "anticipo": 4800, "valor": 19188, "vcto": "2026-06-29", "ejec": "GS"}, {"empresa": "JCEVCORP", "prov": "TAIZHOU MUGUANG", "imp": "WINSTAR 01-2026", "merch": "SOLDADORAS", "total": 62330, "anticipo": 6233, "valor": 56097, "vcto": "2026-06-30", "ejec": ""}];
+const credData=[{"empresa": "CREDIMPORT", "prov": "DOWNPAYMENTS", "imp": "DOWNPAYMENTS", "merch": "ANTICIPO", "total": 0, "anticipo": 0, "valor": 350000, "vcto": "2026-06-01", "ejec": "DOWNPAYMENT"}];
+const asmData=[{"empresa": "ASSEMBLY", "prov": "DOWNPAYMENTS", "imp": "DOWNPAYMENTS", "merch": "ANTICIPO", "total": 0, "anticipo": 0, "valor": 450000, "vcto": "2026-06-01", "ejec": "DOWNPAYMENT"}, {"empresa": "ASSEMBLY", "prov": "CHONGQING MOTORHEAD", "imp": "MOTORHEAD 18-2025", "merch": "DY250 SCORPION", "total": 102136, "anticipo": 30000, "valor": 72136, "vcto": "2026-06-04", "ejec": ""}, {"empresa": "ASSEMBLY", "prov": "CHONGQING MOTORHEAD", "imp": "MOTORHEAD 26-2025", "merch": "DY300 TEKKEN DISCOVERY", "total": 160464, "anticipo": 46000, "valor": 114464, "vcto": "2026-06-04", "ejec": ""}, {"empresa": "ASSEMBLY", "prov": "LIFAN INDUSTRY", "imp": "LIFAN 02-2025", "merch": "DY180 WORKFORCE", "total": 183540, "anticipo": 55062, "valor": 128478, "vcto": "2026-06-06", "ejec": ""}, {"empresa": "ASSEMBLY", "prov": "SENGO LIMITED", "imp": "SENGO 06-2025", "merch": "DY125 TANQ", "total": 60602, "anticipo": 20000, "valor": 40602, "vcto": "2026-06-10", "ejec": ""}, {"empresa": "ASSEMBLY", "prov": "CHONGQING MINFF", "imp": "MINFF 12-2025", "merch": "DY150 DYNAMIC PRO", "total": 98784, "anticipo": 29635.2, "valor": 69148.8, "vcto": "2026-06-10", "ejec": ""}, {"empresa": "ASSEMBLY", "prov": "CHONGQING MINFF", "imp": "MINFF 01-2026", "merch": "DY200 EAGLE Z", "total": 81466, "anticipo": 24439.8, "valor": 57026.2, "vcto": "2026-06-10", "ejec": ""}, {"empresa": "ASSEMBLY", "prov": "SONLINK MOTORCYCLE", "imp": "SONLINK 50-2025", "merch": "DY150 CRUCERO", "total": 86700, "anticipo": 20000, "valor": 66700, "vcto": "2026-06-11", "ejec": ""}, {"empresa": "ASSEMBLY", "prov": "LINXI MOTOR INT'L", "imp": "XIN LIN 02-2025", "merch": "DY200 ARROW", "total": 104520, "anticipo": 31356, "valor": 73164, "vcto": "2026-06-13", "ejec": ""}, {"empresa": "ASSEMBLY", "prov": "LINXI MOTOR INT'L", "imp": "XIN LIN 01-2026", "merch": "DY200 WING EVO II", "total": 193952, "anticipo": 58185, "valor": 135767, "vcto": "2026-06-13", "ejec": ""}, {"empresa": "ASSEMBLY", "prov": "CHONGQING MOTORHEAD", "imp": "MOTORHEAD 32-2025", "merch": "DY200 SCORPION", "total": 175891, "anticipo": 52000, "valor": 123891, "vcto": "2026-06-16", "ejec": ""}, {"empresa": "ASSEMBLY", "prov": "WUXI EAST TECHNOLOGY", "imp": "EST 02-2026", "merch": "DY370 GP-1 RR", "total": 138020, "anticipo": 41406, "valor": 96614, "vcto": "2026-06-20", "ejec": ""}, {"empresa": "ASSEMBLY", "prov": "SONLINK MOTORCYCLE", "imp": "SONLINK 42-2025", "merch": "DY250 WOLF", "total": 106604, "anticipo": 20000, "valor": 86604, "vcto": "2026-06-21", "ejec": ""}, {"empresa": "ASSEMBLY", "prov": "SONLINK MOTORCYCLE", "imp": "SONLINK 46-2025", "merch": "DY200 CRUCERO", "total": 91392, "anticipo": 20000, "valor": 71392, "vcto": "2026-06-21", "ejec": ""}, {"empresa": "ASSEMBLY", "prov": "SONLINK MOTORCYCLE", "imp": "SONLINK 49-2025", "merch": "DY150 WORKFORCE", "total": 276192, "anticipo": 60000, "valor": 216192, "vcto": "2026-06-21", "ejec": ""}, {"empresa": "ASSEMBLY", "prov": "CHONGQING MOTORHEAD", "imp": "MOTORHEAD 31-2025", "merch": "DY200 SCORPION", "total": 178800, "anticipo": 52000, "valor": 126800, "vcto": "2026-06-26", "ejec": ""}, {"empresa": "ASSEMBLY", "prov": "CHONGQING MOTORHEAD", "imp": "MOTORHEAD 33A-2026", "merch": "DY250 SCORPION", "total": 97950, "anticipo": 0, "valor": 97950, "vcto": "2026-06-26", "ejec": ""}, {"empresa": "ASSEMBLY", "prov": "CHONGQING XGJAO", "imp": "VINTO 02-2026", "merch": "DY300 EVEREST", "total": 190080, "anticipo": 57024, "valor": 133056, "vcto": "2026-06-26", "ejec": ""}, {"empresa": "ASSEMBLY", "prov": "BASHAN MOTORCYCLE", "imp": "BASHAN C 18-2025", "merch": "DY200 SHARK", "total": 72310.98, "anticipo": 16023, "valor": 56287.98, "vcto": "2026-06-27", "ejec": ""}, {"empresa": "ASSEMBLY", "prov": "CHONGQING MINFF", "imp": "MINFF 02-2026", "merch": "DY200 EAGLE Z", "total": 81928, "anticipo": 24578.4, "valor": 57349.6, "vcto": "2026-06-29", "ejec": ""}, {"empresa": "ASSEMBLY", "prov": "JIANGSU DAELG MOTORCYCLE", "imp": "SUKULI 02-2025", "merch": "CF 450 SR", "total": 207900, "anticipo": 62370, "valor": 145530, "vcto": "2026-06-30", "ejec": ""}];
+const sriData=[{"empresa": "ASSEMBLY", "sri": 220636, "fecha": "2026-06-11", "nc": 132000, "debito": 88636, "banco": "PICHINCHA"}, {"empresa": "JCEVCORP", "sri": 632000, "fecha": "2026-06-11", "nc": 378000, "debito": 254000, "banco": "PRODUBANCO"}, {"empresa": "CREDIMPORT", "sri": 8291, "fecha": "2026-06-16", "nc": 4000, "debito": 4291, "banco": "PICHINCHA"}, {"empresa": "FULLMOTOS", "sri": 74828, "fecha": "2026-06-16", "nc": 44000, "debito": 30828, "banco": "PICHINCHA"}];
+const nominaData=[{"empresa": "ASSEMBLY", "monto": 13545, "fecha": "2026-06-15", "quincena": "1Q"}, {"empresa": "ASSEMBLY", "monto": 20797, "fecha": "2026-06-30", "quincena": "2Q"}, {"empresa": "JCEVCORP", "monto": 38200, "fecha": "2026-06-15", "quincena": "1Q"}, {"empresa": "JCEVCORP", "monto": 95300, "fecha": "2026-06-30", "quincena": "2Q"}, {"empresa": "CREDIMPORT", "monto": 14041, "fecha": "2026-06-15", "quincena": "1Q"}, {"empresa": "CREDIMPORT", "monto": 31659, "fecha": "2026-06-30", "quincena": "2Q"}, {"empresa": "MONTAZ", "monto": 8100, "fecha": "2026-06-15", "quincena": "1Q"}, {"empresa": "MONTAZ", "monto": 12350, "fecha": "2026-06-30", "quincena": "2Q"}, {"empresa": "TODOMOTO", "monto": 5219, "fecha": "2026-06-15", "quincena": "1Q"}, {"empresa": "TODOMOTO", "monto": 7487, "fecha": "2026-06-30", "quincena": "2Q"}, {"empresa": "CONSUREP", "monto": 14100, "fecha": "2026-06-15", "quincena": "1Q"}, {"empresa": "CONSUREP", "monto": 16500, "fecha": "2026-06-30", "quincena": "2Q"}];
+const provData=[{"empresa": "ASSEMBLY", "monto": 220000, "fecha": "2026-06-15"}, {"empresa": "JCEVCORP", "monto": 350000, "fecha": "2026-06-15"}, {"empresa": "CREDIMPORT", "monto": 60000, "fecha": "2026-06-15"}, {"empresa": "FULLMOTOS", "monto": 150000, "fecha": "2026-06-15"}, {"empresa": "CONSUREP", "monto": 20000, "fecha": "2026-06-15"}];
+const impData=[{"liq": "51491806", "val": 21222.22}, {"liq": "51499011", "val": 70585.47}, {"liq": "51495571", "val": 95507.12}, {"liq": "51515029", "val": 162831.24}, {"liq": "51621013", "val": 65199.04}, {"liq": "51633589", "val": 299.36}, {"liq": "51590012", "val": 71996.43}, {"liq": "51589160", "val": 103593.97}, {"liq": "51581279", "val": 47581.9}, {"liq": "51597652", "val": 21111.97}, {"liq": "51576806", "val": 40448.24}, {"liq": "51588854", "val": 13134.04}, {"liq": "51562749", "val": 8509.37}, {"liq": "51554949", "val": 62137.66}, {"liq": "51632574", "val": 6447.01}, {"liq": "51624222", "val": 6020.1}, {"liq": "51632776", "val": 25025.02}, {"liq": "51560613", "val": 79837.99}];
 
-const DOWS = ['DOM','LUN','MAR','MIÉ','JUE','VIE','SÁB'];
-const fmt = n => '$' + Number(n).toLocaleString('es-EC',{minimumFractionDigits:0,maximumFractionDigits:0});
+// ============================================================
+// UTILS
+// ============================================================
+const MES={
+  '2026-04':'Abril 2026','2026-05':'Mayo 2026','2026-06':'Junio 2026',
+  '2026-07':'Julio 2026','2026-08':'Agosto 2026','2026-09':'Septiembre 2026',
+  '2026-10':'Octubre 2026','2026-11':'Noviembre 2026','2026-12':'Diciembre 2026',
+  '2027-01':'Enero 2027','2027-02':'Febrero 2027','2027-03':'Marzo 2027',
+  '2027-04':'Abril 2027','2027-05':'Mayo 2027','2027-06':'Junio 2027'
+};
+const DOWS=['DOM','LUN','MAR','MIÉ','JUE','VIE','SÁB'];
 
-const obligaciones = [
-  {empresa:'JCEVCORP',banco:'PRODUBANCO',iso:'2027-04-22',capital:1000000,interes:34044.31,total:1034044.31,tasa:'6.00%',vencida:false},
-  {empresa:'ASSEMBLY',banco:'PICHINCHA PANAMA',iso:'2026-06-11',capital:490000,interes:15680,total:505680,tasa:'6.00%',vencida:false},
-  {empresa:'JCEVCORP',banco:'PICHINCHA PANAMA',iso:'2026-06-22',capital:478000,interes:8205.67,total:486205.67,tasa:'6.00%',vencida:false},
-  {empresa:'ASSEMBLY',banco:'EBNA BANK',iso:'2026-06-22',capital:180000,interes:5320,total:185320,tasa:'5.60%',vencida:false},
-  {empresa:'ASSEMBLY',banco:'PICHINCHA PANAMA',iso:'2026-06-24',capital:387500,interes:6781.25,total:394281.25,tasa:'6.00%',vencida:false},
-  {empresa:'ASSEMBLY',banco:'EBNA BANK',iso:'2026-06-29',capital:314605,interes:9787.73,total:324392.73,tasa:'7.00%',vencida:false},
-  {empresa:'ASSEMBLY',banco:'EBNA BANK',iso:'2026-07-01',capital:556000,interes:18487,total:574487,tasa:'5.70%',vencida:false},
-  {empresa:'ASSEMBLY',banco:'EBNA BANK',iso:'2026-07-08',capital:358494.29,interes:10595,total:369089.29,tasa:'5.60%',vencida:false},
-  {empresa:'ASSEMBLY',banco:'PICHINCHA PANAMA',iso:'2026-08-20',capital:87500,interes:1341.67,total:88841.67,tasa:'6.00%',vencida:false},
-  {empresa:'JCEVCORP',banco:'ST GEORGES',iso:'2026-09-28',capital:700000,interes:55304.86,total:755304.86,tasa:'7.75%',vencida:false},
-  {empresa:'ASSEMBLY',banco:'EBNA BANK',iso:'2026-09-30',capital:180000,interes:5320,total:185320,tasa:'5.60%',vencida:false},
-  {empresa:'JCEVCORP',banco:'BOLIVARIANO',iso:'2026-10-05',capital:521636.28,interes:15865.8,total:537502.08,tasa:'6.00%',vencida:false},
-  {empresa:'JCEVCORP',banco:'EBNA BANK',iso:'2026-11-05',capital:200000,interes:20000,total:220000,tasa:'5.60%',vencida:false},
-  {empresa:'JCEVCORP',banco:'PAPEL COMERCIAL',iso:'2027-01-11',capital:750000,interes:41250,total:791250,tasa:'5.50%',vencida:false},
-  {empresa:'JCEVCORP',banco:'PAPEL COMERCIAL',iso:'2027-01-19',capital:500000,interes:27500,total:527500,tasa:'5.50%',vencida:false},
-  {empresa:'JCEVCORP',banco:'PAPEL COMERCIAL',iso:'2027-01-21',capital:750000,interes:41250,total:791250,tasa:'5.50%',vencida:false},
-  {empresa:'JCEVCORP',banco:'PAPEL COMERCIAL',iso:'2027-01-25',capital:2000000,interes:110000,total:2110000,tasa:'5.50%',vencida:false},
-  {empresa:'FULLMOTOS',banco:'PRODUBANCO',iso:'2027-05-10',capital:500000,interes:17644.02,total:517644.02,tasa:'6.25%',vencida:false},
-  {empresa:'ASSEMBLY',banco:'PRODUBANCO',iso:'2027-06-05',capital:100000,interes:3496.05,total:103496.05,tasa:'6.25%',vencida:false},
-  {empresa:'JCEVCORP',banco:'PRODUBANCO',iso:'2027-06-03',capital:1000000,interes:33734.39,total:1033734.39,tasa:'6.00%',vencida:false},
-  {empresa:'JCEVCORP',banco:'INTERNACIONAL',iso:'2027-06-03',capital:500000,interes:16147.45,total:516147.45,tasa:'6.06%',vencida:false},
-  {empresa:'JCEVCORP',banco:'PICHINCHA',iso:'2027-06-09',capital:800000,interes:24968.75,total:824968.75,tasa:'5.70%',vencida:false},
-  {empresa:'ASSEMBLY',banco:'PRODUBANCO',iso:'2027-06-08',capital:500000,interes:16710.62,total:516710.62,tasa:'6.00%',vencida:false},
-  {empresa:'JCEVCORP',banco:'PRODUBANCO',iso:'2027-06-11',capital:1000000,interes:33378.93,total:1033378.93,tasa:'6.00%',vencida:false},
-];
+function fmt(v){if(!v&&v!==0)return'—';return'$'+Number(v).toLocaleString('es-EC',{minimumFractionDigits:0,maximumFractionDigits:0});}
+function fmtd(v){if(!v&&v!==0)return'—';return'$'+Number(v).toLocaleString('es-EC',{minimumFractionDigits:2,maximumFractionDigits:2});}
+function fmtD(s){if(!s)return'—';const[y,m,d]=s.split('-');return d+'/'+m+'/'+y;}
+function daysDiff(iso){const t=new Date(iso+'T12:00:00');const n=new Date();return Math.round((t-n)/86400000);}
 
-const amort1 = [
-  {f:'22 May 2026',iso:'2026-05-22',cap:81216.19,int:4954.17,cuota:86170.36,estado:'CANCELADO'},
-  {f:'22 Jun 2026',iso:'2026-06-22',cap:81304.63,int:4865.73,cuota:86170.36,estado:'PENDIENTE'},
-  {f:'22 Jul 2026',iso:'2026-07-22',cap:81878.28,int:4292.08,cuota:86170.36,estado:'PENDIENTE'},
-  {f:'22 Ago 2026',iso:'2026-08-22',cap:81910.66,int:4259.7,cuota:86170.36,estado:'PENDIENTE'},
-  {f:'22 Sep 2026',iso:'2026-09-22',cap:82832.79,int:3337.57,cuota:86170.36,estado:'PENDIENTE'},
-  {f:'22 Oct 2026',iso:'2026-10-22',cap:83142.22,int:3028.14,cuota:86170.36,estado:'PENDIENTE'},
-  {f:'22 Nov 2026',iso:'2026-11-22',cap:83394.85,int:2775.51,cuota:86170.36,estado:'PENDIENTE'},
-  {f:'22 Dic 2026',iso:'2026-12-22',cap:84068.21,int:2102.15,cuota:86170.36,estado:'PENDIENTE'},
-  {f:'22 Ene 2027',iso:'2027-01-22',cap:84368.44,int:1801.92,cuota:86170.36,estado:'PENDIENTE'},
-  {f:'22 Feb 2027',iso:'2027-02-22',cap:84815.24,int:1355.12,cuota:86170.36,estado:'PENDIENTE'},
-  {f:'22 Mar 2027',iso:'2027-03-22',cap:85352.08,int:818.28,cuota:86170.36,estado:'PENDIENTE'},
-  {f:'22 Abr 2027',iso:'2027-04-22',cap:85716.41,int:453.94,cuota:86170.35,estado:'PENDIENTE'},
-];
+function empBadge(e){
+  const map={'JCEVCORP':'eb-jcev','ASSEMBLY':'eb-asm','FULLMOTOS':'eb-full',
+    'CREDIMPORT':'eb-cred','CONSUREP':'eb-cons','TODOMOTO':'eb-todo','MONTAZ':'eb-mont'};
+  return`<span class="eb ${map[e]||'eb-jcev'}">${e}</span>`;
+}
+function stBadge(s){
+  if(!s)return'';
+  if(s==='CANCELADO')return`<span class="st-badge st-canc">CANCELADO</span>`;
+  if(s==='PENDIENTE'){const d=Date.now();return`<span class="st-badge st-pend">PENDIENTE</span>`;}
+  return`<span class="st-badge">${s}</span>`;
+}
 
-const amort2 = [
-  {f:'08 Jun 2026',iso:'2026-06-08',cap:40272.42,int:2864.58,cuota:43137,estado:'CANCELADO'},
-  {f:'06 Jul 2026',iso:'2026-07-06',cap:40742.59,int:2394.41,cuota:43137,estado:'PENDIENTE'},
-  {f:'11 Ago 2026',iso:'2026-08-11',cap:40663.82,int:2473.18,cuota:43137,estado:'PENDIENTE'},
-  {f:'08 Sep 2026',iso:'2026-09-08',cap:41297.94,int:1839.06,cuota:43137,estado:'PENDIENTE'},
-  {f:'08 Oct 2026',iso:'2026-10-08',cap:41381.67,int:1755.33,cuota:43137,estado:'PENDIENTE'},
-  {f:'09 Nov 2026',iso:'2026-11-09',cap:41494.55,int:1642.45,cuota:43137,estado:'PENDIENTE'},
-  {f:'08 Dic 2026',iso:'2026-12-08',cap:41857.44,int:1279.56,cuota:43137,estado:'PENDIENTE'},
-  {f:'08 Ene 2027',iso:'2027-01-08',cap:41994.47,int:1142.53,cuota:43137,estado:'PENDIENTE'},
-  {f:'10 Feb 2027',iso:'2027-02-10',cap:42161.35,int:975.65,cuota:43137,estado:'PENDIENTE'},
-  {f:'08 Mar 2027',iso:'2027-03-08',cap:42558.62,int:578.38,cuota:43137,estado:'PENDIENTE'},
-  {f:'08 Abr 2027',iso:'2027-04-08',cap:42676.44,int:460.56,cuota:43137,estado:'PENDIENTE'},
-  {f:'10 May 2027',iso:'2027-05-10',cap:42898.69,int:238.33,cuota:43137.02,estado:'PENDIENTE'},
-];
+const TIPO_COL={
+  'Obligación':'#3b82f6','Amort. TA':'#a855f7',
+  'Imp. JCEV':'#22c55e','Imp. CONSUREP':'#06b6d4','Imp. TODOMOTO':'#eab308',
+  'Imp. CREDIMPORT':'#f97316','Imp. ASSEMBLY':'#ec4899',
+  'SRI':'#f59e0b','Nómina':'#10b981','Proveedores':'#8b5cf6','Imp. Garantizado':'#ef4444'
+};
 
-const amort3 = [
-  {f:'08 Jun 2026',iso:'2026-06-08',cap:8051.75,int:572.92,cuota:8624.67,estado:'CANCELADO'},
-  {f:'06 Jul 2026',iso:'2026-07-06',cap:8177.7,int:446.97,cuota:8624.67,estado:'PENDIENTE'},
-  {f:'06 Ago 2026',iso:'2026-08-06',cap:8173.82,int:450.85,cuota:8624.67,estado:'PENDIENTE'},
-  {f:'07 Sep 2026',iso:'2026-09-07',cap:8204.69,int:419.98,cuota:8624.67,estado:'PENDIENTE'},
-  {f:'06 Oct 2026',iso:'2026-10-06',cap:8285.37,int:339.3,cuota:8624.67,estado:'PENDIENTE'},
-  {f:'06 Nov 2026',iso:'2026-11-06',cap:8306.56,int:318.11,cuota:8624.67,estado:'PENDIENTE'},
-  {f:'07 Dic 2026',iso:'2026-12-07',cap:8351.27,int:273.4,cuota:8624.67,estado:'PENDIENTE'},
-  {f:'06 Ene 2027',iso:'2027-01-06',cap:8403.58,int:221.09,cuota:8624.67,estado:'PENDIENTE'},
-  {f:'10 Feb 2027',iso:'2027-02-10',cap:8417.8,int:206.87,cuota:8624.67,estado:'PENDIENTE'},
-  {f:'08 Mar 2027',iso:'2027-03-08',cap:8508.99,int:115.68,cuota:8624.67,estado:'PENDIENTE'},
-  {f:'06 Abr 2027',iso:'2027-04-06',cap:8538.48,int:86.19,cuota:8624.67,estado:'PENDIENTE'},
-  {f:'06 May 2027',iso:'2027-05-06',cap:8579.99,int:44.69,cuota:8624.68,estado:'PENDIENTE'},
-];
+function typBadge(t){const c=TIPO_COL[t]||'#3b82f6';return`<span class="typ-badge" style="background:${c}22;color:${c};border-color:${c}44">${t}</span>`;}
 
-const amort4 = [
-  {f:'03 Jul 2026',iso:'2026-07-03',cap:80811.29,int:5333.33,cuota:86144.62,estado:'PENDIENTE'},
-  {f:'03 Ago 2026',iso:'2026-08-03',cap:81395.48,int:4749.14,cuota:86144.62,estado:'PENDIENTE'},
-  {f:'03 Sep 2026',iso:'2026-09-03',cap:81816.02,int:4328.6,cuota:86144.62,estado:'PENDIENTE'},
-  {f:'05 Oct 2026',iso:'2026-10-05',cap:82112.74,int:4031.88,cuota:86144.62,estado:'PENDIENTE'},
-  {f:'04 Nov 2026',iso:'2026-11-04',cap:82775.3,int:3368.32,cuota:86143.62,estado:'PENDIENTE'},
-  {f:'03 Dic 2026',iso:'2026-12-03',cap:83287.69,int:2856.93,cuota:86144.62,estado:'PENDIENTE'},
-  {f:'04 Ene 2027',iso:'2027-01-04',cap:83436.35,int:2708.27,cuota:86144.62,estado:'PENDIENTE'},
-  {f:'03 Feb 2027',iso:'2027-02-03',cap:84022.79,int:2121.83,cuota:86144.62,estado:'PENDIENTE'},
-  {f:'03 Mar 2027',iso:'2027-03-03',cap:84556.36,int:1588.26,cuota:86144.62,estado:'PENDIENTE'},
-  {f:'05 Abr 2027',iso:'2027-04-05',cap:84737.8,int:1406.82,cuota:86144.62,estado:'PENDIENTE'},
-  {f:'03 May 2027',iso:'2027-05-03',cap:85346.4,int:798.22,cuota:86144.62,estado:'PENDIENTE'},
-  {f:'03 Jun 2027',iso:'2027-06-03',cap:85701.78,int:442.79,cuota:86144.57,estado:'PENDIENTE'},
-];
+function showToast(msg,ok=true){
+  const t=document.getElementById('toast');
+  t.textContent=msg;t.style.borderColor=ok?'rgba(34,197,94,.4)':'rgba(239,68,68,.4)';
+  t.style.color=ok?'#4ade80':'#f87171';
+  t.classList.add('show');setTimeout(()=>t.classList.remove('show'),3000);
+}
 
-const amort5 = [
-  {f:'03 Jul 2026',iso:'2026-07-03',cap:40564.63,int:2458.33,cuota:43022.96,estado:'PENDIENTE'},
-  {f:'03 Ago 2026',iso:'2026-08-03',cap:40764.07,int:2258.89,cuota:43022.96,estado:'PENDIENTE'},
-  {f:'03 Sep 2026',iso:'2026-09-03',cap:40895.88,int:2127.08,cuota:43022.96,estado:'PENDIENTE'},
-  {f:'05 Oct 2026',iso:'2026-10-05',cap:41227.48,int:1795.48,cuota:43022.96,estado:'PENDIENTE'},
-  {f:'04 Nov 2026',iso:'2026-11-04',cap:41368.27,int:1654.59,cuota:43022.86,estado:'PENDIENTE'},
-  {f:'03 Dic 2026',iso:'2026-12-03',cap:41474.91,int:1548.05,cuota:43022.96,estado:'PENDIENTE'},
-  {f:'04 Ene 2027',iso:'2027-01-04',cap:41858.74,int:1164.22,cuota:43022.96,estado:'PENDIENTE'},
-  {f:'03 Feb 2027',iso:'2027-02-03',cap:41981.38,int:1041.58,cuota:43022.96,estado:'PENDIENTE'},
-  {f:'03 Mar 2027',iso:'2027-03-03',cap:42187.79,int:835.17,cuota:43022.96,estado:'PENDIENTE'},
-  {f:'05 Abr 2027',iso:'2027-04-05',cap:42374.29,int:648.67,cuota:43022.96,estado:'PENDIENTE'},
-  {f:'03 May 2027',iso:'2027-05-03',cap:42617.54,int:405.42,cuota:43022.96,estado:'PENDIENTE'},
-  {f:'03 Jun 2027',iso:'2027-06-03',cap:42685.02,int:209.87,cuota:42894.89,estado:'PENDIENTE'},
-];
+// ============================================================
+// NAVIGATION
+// ============================================================
+const TITLES={'s-res':'Resumen General','s-obl':'Obligaciones Financieras',
+  's-amort':'Amortización TA','s-jcev':'Flujo JCEV & CONSUREP',
+  's-cred':'Flujo CREDIMPORT','s-asm':'Flujo ASSEMBLY',
+  's-sri':'SRI & Nómina','s-prov':'Proveedores Nacionales',
+  's-imp':'Impuestos Garantizados SENAE','s-cal':'Calendario Consolidado'};
 
-const amort6 = [
-  {f:'09 Jul 2026',iso:'2026-07-09',cap:64942.88,int:3800,cuota:68742.88,estado:'PENDIENTE'},
-  {f:'08 Ago 2026',iso:'2026-08-08',cap:65251.36,int:3491.52,cuota:68742.88,estado:'PENDIENTE'},
-  {f:'07 Sep 2026',iso:'2026-09-07',cap:65561.3,int:3181.58,cuota:68742.88,estado:'PENDIENTE'},
-  {f:'07 Oct 2026',iso:'2026-10-07',cap:65872.72,int:2870.16,cuota:68742.88,estado:'PENDIENTE'},
-  {f:'06 Nov 2026',iso:'2026-11-06',cap:66185.62,int:2557.27,cuota:68742.89,estado:'PENDIENTE'},
-  {f:'06 Dic 2026',iso:'2026-12-06',cap:66500,int:2242.89,cuota:68742.89,estado:'PENDIENTE'},
-  {f:'05 Ene 2027',iso:'2027-01-05',cap:66815.87,int:1927.01,cuota:68742.88,estado:'PENDIENTE'},
-  {f:'04 Feb 2027',iso:'2027-02-04',cap:67133.25,int:1609.63,cuota:68742.88,estado:'PENDIENTE'},
-  {f:'03 Mar 2027',iso:'2027-03-03',cap:67452.13,int:1290.75,cuota:68742.88,estado:'PENDIENTE'},
-  {f:'05 Abr 2027',iso:'2027-04-05',cap:67772.53,int:970.35,cuota:68742.88,estado:'PENDIENTE'},
-  {f:'05 May 2027',iso:'2027-05-05',cap:68094.45,int:648.43,cuota:68742.88,estado:'PENDIENTE'},
-  {f:'09 Jun 2027',iso:'2027-06-09',cap:68417.89,int:379.15,cuota:68797.04,estado:'PENDIENTE'},
-];
-
-const amort7 = [
-  {f:'08 Jul 2026',iso:'2026-07-08',cap:40559.22,int:2500,cuota:43059.22,estado:'PENDIENTE'},
-  {f:'11 Ago 2026',iso:'2026-08-11',cap:40455.72,int:2603.5,cuota:43059.22,estado:'PENDIENTE'},
-  {f:'08 Sep 2026',iso:'2026-09-08',cap:41103.96,int:1955.26,cuota:43059.22,estado:'PENDIENTE'},
-  {f:'08 Oct 2026',iso:'2026-10-08',cap:41169.81,int:1889.41,cuota:43059.22,estado:'PENDIENTE'},
-  {f:'09 Nov 2026',iso:'2026-11-09',cap:41263.43,int:1795.79,cuota:43059.22,estado:'PENDIENTE'},
-  {f:'08 Dic 2026',iso:'2026-12-08',cap:41631.22,int:1428,cuota:43059.22,estado:'PENDIENTE'},
-  {f:'08 Ene 2027',iso:'2027-01-08',cap:41747.83,int:1311.39,cuota:43059.22,estado:'PENDIENTE'},
-  {f:'10 Feb 2027',iso:'2027-02-10',cap:41892.84,int:1166.38,cuota:43059.22,estado:'PENDIENTE'},
-  {f:'08 Mar 2027',iso:'2027-03-08',cap:42321.79,int:737.43,cuota:43059.22,estado:'PENDIENTE'},
-  {f:'08 Abr 2027',iso:'2027-04-08',cap:42398.64,int:660.58,cuota:43059.22,estado:'PENDIENTE'},
-  {f:'10 May 2027',iso:'2027-05-10',cap:42603.46,int:455.76,cuota:43059.22,estado:'PENDIENTE'},
-  {f:'08 Jun 2027',iso:'2027-06-08',cap:42852.08,int:207.12,cuota:43059.2,estado:'PENDIENTE'},
-];
-
-const amort8 = [
-  {f:'13 Jul 2026',iso:'2026-07-13',cap:80781.58,int:5333.33,cuota:86114.91,estado:'PENDIENTE'},
-  {f:'11 Ago 2026',iso:'2026-08-11',cap:81672.02,int:4442.89,cuota:86114.91,estado:'PENDIENTE'},
-  {f:'11 Mar 2026',iso:'2026-03-11',cap:81787.59,int:4327.32,cuota:86114.91,estado:'PENDIENTE'},
-  {f:'12 Oct 2026',iso:'2026-10-12',cap:82210.16,int:3904.75,cuota:86114.91,estado:'PENDIENTE'},
-  {f:'11 Nov 2026',iso:'2026-11-11',cap:82747.17,int:3367.74,cuota:86114.91,estado:'PENDIENTE'},
-  {f:'11 Dic 2026',iso:'2026-12-11',cap:83160.9,int:2954.01,cuota:86114.91,estado:'PENDIENTE'},
-  {f:'11 Ene 2027',iso:'2027-01-11',cap:83492.1,int:2622.81,cuota:86114.91,estado:'PENDIENTE'},
-  {f:'11 Feb 2027',iso:'2027-02-11',cap:83923.48,int:2191.43,cuota:86114.91,estado:'PENDIENTE'},
-  {f:'11 Mar 2027',iso:'2027-03-11',cap:84527.19,int:1587.72,cuota:86114.91,estado:'PENDIENTE'},
-  {f:'13 Abr 2027',iso:'2027-04-13',cap:84708.57,int:1406.34,cuota:86114.91,estado:'PENDIENTE'},
-  {f:'11 May 2027',iso:'2027-05-11',cap:85316.96,int:797.95,cuota:86114.91,estado:'PENDIENTE'},
-  {f:'11 Jun 2027',iso:'2027-06-11',cap:85672.28,int:442.64,cuota:86114.92,estado:'PENDIENTE'},
-];
-
-const amortDef = [
-  {data:amort1,e:'JCEVCORP',b:'PRODUBANCO',tag:'T1 $1000K Vcto 2027-04'},
-  {data:amort2,e:'FULLMOTOS',b:'PRODUBANCO',tag:'T2 $500K Vcto 2027-05'},
-  {data:amort3,e:'ASSEMBLY',b:'PRODUBANCO',tag:'T3 $100K Vcto 2027-06'},
-  {data:amort4,e:'JCEVCORP',b:'PRODUBANCO',tag:'T4 $1000K Vcto 2027-06'},
-  {data:amort5,e:'JCEVCORP',b:'INTERNACIONAL',tag:'T5 $500K Vcto 2027-06'},
-  {data:amort6,e:'JCEVCORP',b:'PICHINCHA',tag:'T6 $800K Vcto 2026-06'},
-  {data:amort7,e:'ASSEMBLY',b:'PRODUBANCO',tag:'T7 $500K Vcto 2027-06'},
-  {data:amort8,e:'JCEVCORP',b:'PRODUBANCO',tag:'T8 $1000K Vcto 2027-06'},
-];
-
-const allTx = [];
-// Obligaciones
-allTx.push({iso:'2027-04-22',empresa:'JCEVCORP',desc:'PRODUBANCO',tipo:'Obligación',monto:1034044.31,detail:'Cap. '+fmt(1000000)+' · Tasa 6.00%',vencida:false});
-allTx.push({iso:'2026-06-11',empresa:'ASSEMBLY',desc:'PICHINCHA PANAMA',tipo:'Obligación',monto:505680,detail:'Cap. '+fmt(490000)+' · Tasa 6.00%',vencida:false});
-allTx.push({iso:'2026-06-22',empresa:'JCEVCORP',desc:'PICHINCHA PANAMA',tipo:'Obligación',monto:486205.67,detail:'Cap. '+fmt(478000)+' · Tasa 6.00%',vencida:false});
-allTx.push({iso:'2026-06-22',empresa:'ASSEMBLY',desc:'EBNA BANK',tipo:'Obligación',monto:185320,detail:'Cap. '+fmt(180000)+' · Tasa 5.60%',vencida:false});
-allTx.push({iso:'2026-06-24',empresa:'ASSEMBLY',desc:'PICHINCHA PANAMA',tipo:'Obligación',monto:394281.25,detail:'Cap. '+fmt(387500)+' · Tasa 6.00%',vencida:false});
-allTx.push({iso:'2026-06-29',empresa:'ASSEMBLY',desc:'EBNA BANK',tipo:'Obligación',monto:324392.73,detail:'Cap. '+fmt(314605)+' · Tasa 7.00%',vencida:false});
-allTx.push({iso:'2026-07-01',empresa:'ASSEMBLY',desc:'EBNA BANK',tipo:'Obligación',monto:574487,detail:'Cap. '+fmt(556000)+' · Tasa 5.70%',vencida:false});
-allTx.push({iso:'2026-07-08',empresa:'ASSEMBLY',desc:'EBNA BANK',tipo:'Obligación',monto:369089.29,detail:'Cap. '+fmt(358494.29)+' · Tasa 5.60%',vencida:false});
-allTx.push({iso:'2026-08-20',empresa:'ASSEMBLY',desc:'PICHINCHA PANAMA',tipo:'Obligación',monto:88841.67,detail:'Cap. '+fmt(87500)+' · Tasa 6.00%',vencida:false});
-allTx.push({iso:'2026-09-28',empresa:'JCEVCORP',desc:'ST GEORGES',tipo:'Obligación',monto:755304.86,detail:'Cap. '+fmt(700000)+' · Tasa 7.75%',vencida:false});
-allTx.push({iso:'2026-09-30',empresa:'ASSEMBLY',desc:'EBNA BANK',tipo:'Obligación',monto:185320,detail:'Cap. '+fmt(180000)+' · Tasa 5.60%',vencida:false});
-allTx.push({iso:'2026-10-05',empresa:'JCEVCORP',desc:'BOLIVARIANO',tipo:'Obligación',monto:537502.08,detail:'Cap. '+fmt(521636.28)+' · Tasa 6.00%',vencida:false});
-allTx.push({iso:'2026-11-05',empresa:'JCEVCORP',desc:'EBNA BANK',tipo:'Obligación',monto:220000,detail:'Cap. '+fmt(200000)+' · Tasa 5.60%',vencida:false});
-allTx.push({iso:'2027-01-11',empresa:'JCEVCORP',desc:'PAPEL COMERCIAL',tipo:'Obligación',monto:791250,detail:'Cap. '+fmt(750000)+' · Tasa 5.50%',vencida:false});
-allTx.push({iso:'2027-01-19',empresa:'JCEVCORP',desc:'PAPEL COMERCIAL',tipo:'Obligación',monto:527500,detail:'Cap. '+fmt(500000)+' · Tasa 5.50%',vencida:false});
-allTx.push({iso:'2027-01-21',empresa:'JCEVCORP',desc:'PAPEL COMERCIAL',tipo:'Obligación',monto:791250,detail:'Cap. '+fmt(750000)+' · Tasa 5.50%',vencida:false});
-allTx.push({iso:'2027-01-25',empresa:'JCEVCORP',desc:'PAPEL COMERCIAL',tipo:'Obligación',monto:2110000,detail:'Cap. '+fmt(2000000)+' · Tasa 5.50%',vencida:false});
-allTx.push({iso:'2027-05-10',empresa:'FULLMOTOS',desc:'PRODUBANCO',tipo:'Obligación',monto:517644.02,detail:'Cap. '+fmt(500000)+' · Tasa 6.25%',vencida:false});
-allTx.push({iso:'2027-06-05',empresa:'ASSEMBLY',desc:'PRODUBANCO',tipo:'Obligación',monto:103496.05,detail:'Cap. '+fmt(100000)+' · Tasa 6.25%',vencida:false});
-allTx.push({iso:'2027-06-03',empresa:'JCEVCORP',desc:'PRODUBANCO',tipo:'Obligación',monto:1033734.39,detail:'Cap. '+fmt(1000000)+' · Tasa 6.00%',vencida:false});
-allTx.push({iso:'2027-06-03',empresa:'JCEVCORP',desc:'INTERNACIONAL',tipo:'Obligación',monto:516147.45,detail:'Cap. '+fmt(500000)+' · Tasa 6.06%',vencida:false});
-allTx.push({iso:'2027-06-09',empresa:'JCEVCORP',desc:'PICHINCHA',tipo:'Obligación',monto:824968.75,detail:'Cap. '+fmt(800000)+' · Tasa 5.70%',vencida:false});
-allTx.push({iso:'2027-06-08',empresa:'ASSEMBLY',desc:'PRODUBANCO',tipo:'Obligación',monto:516710.62,detail:'Cap. '+fmt(500000)+' · Tasa 6.00%',vencida:false});
-allTx.push({iso:'2027-06-11',empresa:'JCEVCORP',desc:'PRODUBANCO',tipo:'Obligación',monto:1033378.93,detail:'Cap. '+fmt(1000000)+' · Tasa 6.00%',vencida:false});
-// Importaciones
-allTx.push({iso:'2026-06-01',empresa:'JCEVCORP',desc:'DOWNPAYMENTS / DOWNPAYMENTS · ANTICIPO',tipo:'Importación',monto:450000,detail:''});
-allTx.push({iso:'2026-06-01',empresa:'JCEVCORP',desc:'COBY / COBY 05-2025 · PARLANTES',tipo:'Importación',monto:19950,detail:''});
-allTx.push({iso:'2026-06-02',empresa:'CONSUREP',desc:'KONKA / KONKA 06 - 2025 · PANEL',tipo:'Importación',monto:264213.8,detail:''});
-allTx.push({iso:'2026-06-02',empresa:'CONSUREP',desc:'KONKA / KONKA 06 - 2025 · INTEREST',tipo:'Importación',monto:3170.56,detail:''});
-allTx.push({iso:'2026-06-04',empresa:'JCEVCORP',desc:'LG ELECTRONICS / LG 10A-2026 / 2000046483 · SECADORA',tipo:'Importación',monto:38580,detail:''});
-allTx.push({iso:'2026-06-04',empresa:'CONSUREP',desc:'ALL DISTRIBUTION PANEL / AD 07 - 2026 / 10379 · PANEL',tipo:'Importación',monto:101990.33,detail:''});
-allTx.push({iso:'2026-06-05',empresa:'JCEVCORP',desc:'TERCELO TIRE / TRANSMATE 03-2026 · LLANTAS',tipo:'Importación',monto:64255.66,detail:''});
-allTx.push({iso:'2026-06-05',empresa:'JCEVCORP',desc:'TERCELO TIRE / TRANSMATE 04-2026 · LLANTAS',tipo:'Importación',monto:68928.9,detail:''});
-allTx.push({iso:'2026-06-05',empresa:'JCEVCORP',desc:'MEILING / MEILING 05-2026 · REFRIGERADORAS',tipo:'Importación',monto:58381,detail:''});
-allTx.push({iso:'2026-06-05',empresa:'JCEVCORP',desc:'XING / XING 01-2026 · VITRINA XLS',tipo:'Importación',monto:7472,detail:''});
-allTx.push({iso:'2026-06-06',empresa:'JCEVCORP',desc:'HOME ELEMENTS / HOME 02-2026 · ELECTROMENOR',tipo:'Importación',monto:39172.8,detail:''});
-allTx.push({iso:'2026-06-07',empresa:'JCEVCORP',desc:'LG ELECTRONICS / LG 11-2026 / 2000046540 · LAVADORAS',tipo:'Importación',monto:75600,detail:''});
-allTx.push({iso:'2026-06-07',empresa:'JCEVCORP',desc:'HOUSEHOLD SOLUTIONS SA / OSTER 26-2025 / 23-2025 · REFRIGERADORA 215',tipo:'Importación',monto:38147.5,detail:''});
-allTx.push({iso:'2026-06-07',empresa:'JCEVCORP',desc:'TAIZHOU QINLI MACHINERY CO LTD / QINLI 01-2026 · FUMIGADORAS',tipo:'Importación',monto:42195,detail:''});
-allTx.push({iso:'2026-06-08',empresa:'JCEVCORP',desc:'HOME ELEMENTS / HOME 04-2026 · ELECTROMENOR',tipo:'Importación',monto:32140,detail:''});
-allTx.push({iso:'2026-06-08',empresa:'CONSUREP',desc:'EXPRESS LUCK / EXPRESS LUCK 01-2026 · TV PARTS',tipo:'Importación',monto:1678023,detail:''});
-allTx.push({iso:'2026-06-10',empresa:'JCEVCORP',desc:'SHANFENG / SHANFENG 02-2026 · REGULADORES',tipo:'Importación',monto:26425,detail:''});
-allTx.push({iso:'2026-06-10',empresa:'JCEVCORP',desc:'ITT / ITT 01-2026 · LAVADORAS',tipo:'Importación',monto:39330,detail:''});
-allTx.push({iso:'2026-06-10',empresa:'JCEVCORP',desc:'LAMO / LAMO 01-2026 · DISPENSADORES',tipo:'Importación',monto:19057.5,detail:''});
-allTx.push({iso:'2026-06-10',empresa:'JCEVCORP',desc:'MINSHENG / MINSHENG 01-2026 · COCINAS',tipo:'Importación',monto:25540.9,detail:''});
-allTx.push({iso:'2026-06-10',empresa:'JCEVCORP',desc:'HOME ELEMENTS / HOME 03-2026 · ELECTROMENOR',tipo:'Importación',monto:34299.2,detail:''});
-allTx.push({iso:'2026-06-11',empresa:'JCEVCORP',desc:'LG ELECTRONICS / LG 12-2026 / 2000046787 · LAVADORAS',tipo:'Importación',monto:107100,detail:''});
-allTx.push({iso:'2026-06-11',empresa:'JCEVCORP',desc:'KONKA / KONKA 06-2025 · MB',tipo:'Importación',monto:90279.2,detail:''});
-allTx.push({iso:'2026-06-11',empresa:'JCEVCORP',desc:'KONKA / KONKA 06-2025 · INTEREST',tipo:'Importación',monto:2166.71,detail:''});
-allTx.push({iso:'2026-06-15',empresa:'JCEVCORP',desc:'SICUENS / FEDERAL 02-2026 · LLANTAS',tipo:'Importación',monto:36456,detail:''});
-allTx.push({iso:'2026-06-15',empresa:'JCEVCORP',desc:'COMPAÑÍA HULERA / TORNEL 07A-2025 · LLANTAS',tipo:'Importación',monto:29986.83,detail:''});
-allTx.push({iso:'2026-06-15',empresa:'JCEVCORP',desc:'COMPAÑÍA HULERA / TORNEL 01-2026 · LLANTAS',tipo:'Importación',monto:106141.9,detail:''});
-allTx.push({iso:'2026-06-15',empresa:'JCEVCORP',desc:'COMPAÑÍA HULERA / TORNEL 02-2026 · LLANTAS',tipo:'Importación',monto:142372.58,detail:''});
-allTx.push({iso:'2026-06-15',empresa:'JCEVCORP',desc:'LONGSONG / LONGSONG 01-2026 · VENTILADORES',tipo:'Importación',monto:17763.48,detail:''});
-allTx.push({iso:'2026-06-16',empresa:'JCEVCORP',desc:'HOME ELEMENTS / HOME 01-2026 · ELECTROMENOR',tipo:'Importación',monto:27550.5,detail:''});
-allTx.push({iso:'2026-06-17',empresa:'JCEVCORP',desc:'LG ELECTRONICS / LG 13A-2026 / 2000047062 · REFRIGERADORA',tipo:'Importación',monto:32900,detail:''});
-allTx.push({iso:'2026-06-18',empresa:'TODOMOTO',desc:'ALL DISTRIBUTION MB / AD 07-2026 / 10378 · MB',tipo:'Importación',monto:76985.7,detail:''});
-allTx.push({iso:'2026-06-20',empresa:'JCEVCORP',desc:'MINFU / MINFU 01-2026 · PARLANTES',tipo:'Importación',monto:37927.87,detail:''});
-allTx.push({iso:'2026-06-22',empresa:'JCEVCORP',desc:'LG ELECTRONICS / LG 13-2026 / 2000047237 · REFRIGERADORA',tipo:'Importación',monto:24000,detail:''});
-allTx.push({iso:'2026-06-22',empresa:'JCEVCORP',desc:'Best Choice International Trade Co. Ltd. / MAZZINI 03A-2026 · LLANTAS',tipo:'Importación',monto:131235.54,detail:''});
-allTx.push({iso:'2026-06-24',empresa:'JCEVCORP',desc:'Best Choice International Trade Co. Ltd. / MAZZINI 04-2026 · LLANTAS',tipo:'Importación',monto:57098.15,detail:''});
-allTx.push({iso:'2026-06-24',empresa:'JCEVCORP',desc:'TAIZHOU GUANGFENG PLASTIC OC., LTD / GUANGFENG 01-2026 · SEMBRADORAS / FUMIGADOR',tipo:'Importación',monto:12608.5,detail:''});
-allTx.push({iso:'2026-06-26',empresa:'JCEVCORP',desc:'KUMHO / KUMHO 01A-2026 · LLANTAS',tipo:'Importación',monto:42360.8,detail:''});
-allTx.push({iso:'2026-06-28',empresa:'JCEVCORP',desc:'HOUSEHOLD SOLUTIONS SA / OSTER 24-2025 · DISPENSADOR DE AGUA',tipo:'Importación',monto:25754,detail:''});
-allTx.push({iso:'2026-06-29',empresa:'JCEVCORP',desc:'XING / XING 02-2026 · SD',tipo:'Importación',monto:19188,detail:''});
-allTx.push({iso:'2026-06-01',empresa:'CREDIMPORT',desc:'DOWNPAYMENTS / DOWNPAYMENTS · ANTICIPO',tipo:'Importación',monto:350000,detail:''});
-allTx.push({iso:'2026-06-01',empresa:'ASSEMBLY',desc:'DOWNPAYMENTS / DOWNPAYMENTS · ANTICIPO',tipo:'Importación',monto:450000,detail:''});
-allTx.push({iso:'2026-06-04',empresa:'ASSEMBLY',desc:'CHONGQING MOTORHEAD IMPORT AND EXPORT CO., LTD / MOTORHEAD 18-2025 · DY250 SCORP',tipo:'Importación',monto:72136,detail:''});
-allTx.push({iso:'2026-06-04',empresa:'ASSEMBLY',desc:'CHONGQING MOTORHEAD IMPORT AND EXPORT CO., LTD / MOTORHEAD 26-2025 · DY300 TEKKE',tipo:'Importación',monto:114464,detail:''});
-allTx.push({iso:'2026-06-06',empresa:'ASSEMBLY',desc:'Chongqing Lifan Industry (Group) Imp. & Exp. Co., Ltd. / LIFAN 02-2025 · DY180 W',tipo:'Importación',monto:128478,detail:''});
-allTx.push({iso:'2026-06-10',empresa:'ASSEMBLY',desc:'SENGO LIMITED / SENGO 06-2025 · DY125 TANQ',tipo:'Importación',monto:40602,detail:''});
-allTx.push({iso:'2026-06-10',empresa:'ASSEMBLY',desc:'CHONGQING MINFF IND. AND TRADING CO., LTD. / MINFF 12-2025 · DY150 DYNAMIC PRO',tipo:'Importación',monto:69148.8,detail:''});
-allTx.push({iso:'2026-06-10',empresa:'ASSEMBLY',desc:'CHONGQING MINFF IND. AND TRADING CO., LTD. / MINFF 01-2026 · DY200 EAGLE Z',tipo:'Importación',monto:57026.2,detail:''});
-allTx.push({iso:'2026-06-11',empresa:'ASSEMBLY',desc:'JIANGMEN SONLINK MOTORCYCLE CO., LTD. / SONLINK 50-2025 · DY150 CRUCERO',tipo:'Importación',monto:66700,detail:''});
-allTx.push({iso:'2026-06-13',empresa:'ASSEMBLY',desc:'LINXI MOTOR INTERNATIONAL CO., LIMITED / XIN LIN 02-2025 · DY200 ARROW',tipo:'Importación',monto:73164,detail:''});
-allTx.push({iso:'2026-06-13',empresa:'ASSEMBLY',desc:'LINXI MOTOR INTERNATIONAL CO., LIMITED / XIN LIN 01-2026 · DY200 WING EVO II',tipo:'Importación',monto:135767,detail:''});
-allTx.push({iso:'2026-06-16',empresa:'ASSEMBLY',desc:'CHONGQING MOTORHEAD IMPORT AND EXPORT CO., LTD / MOTORHEAD 32-2025 · DY200 SCORP',tipo:'Importación',monto:123891,detail:''});
-allTx.push({iso:'2026-06-20',empresa:'ASSEMBLY',desc:'WUXI EAST TECHNOLOGY CO.,LTD / EST 02-2026 · DY370 GP-1 RR',tipo:'Importación',monto:96614,detail:''});
-allTx.push({iso:'2026-06-21',empresa:'ASSEMBLY',desc:'JIANGMEN SONLINK MOTORCYCLE CO., LTD. / SONLINK 42-2025 · DY250 WOLF',tipo:'Importación',monto:86604,detail:''});
-allTx.push({iso:'2026-06-21',empresa:'ASSEMBLY',desc:'JIANGMEN SONLINK MOTORCYCLE CO., LTD. / SONLINK 46-2025 · DY200 CRUCERO',tipo:'Importación',monto:71392,detail:''});
-allTx.push({iso:'2026-06-21',empresa:'ASSEMBLY',desc:'JIANGMEN SONLINK MOTORCYCLE CO., LTD. / SONLINK 49-2025 · DY150 WORKFORCE',tipo:'Importación',monto:216192,detail:''});
-allTx.push({iso:'2026-06-26',empresa:'ASSEMBLY',desc:'CHONGQING MOTORHEAD IMPORT AND EXPORT CO., LTD / MOTORHEAD 31-2025 · DY200 SCORP',tipo:'Importación',monto:126800,detail:''});
-allTx.push({iso:'2026-06-26',empresa:'ASSEMBLY',desc:'CHONGQING MOTORHEAD IMPORT AND EXPORT CO., LTD / MOTORHEAD 33A-2026 · DY250 SCOR',tipo:'Importación',monto:97950,detail:''});
-allTx.push({iso:'2026-06-26',empresa:'ASSEMBLY',desc:'CHONGQING XGJAO MOTORCYCLE CO LTD. / VINTO 02-2026 · DY300 EVEREST',tipo:'Importación',monto:133056,detail:''});
-allTx.push({iso:'2026-06-27',empresa:'ASSEMBLY',desc:'CHONGQING ASTRONAUTIC BASHAN MOTORCYCLE MANUFACTURING CO., LTD / BASHAN C 18-202',tipo:'Importación',monto:56287.98,detail:''});
-allTx.push({iso:'2026-06-29',empresa:'ASSEMBLY',desc:'CHONGQING MINFF IND. AND TRADING CO., LTD. / MINFF 02-2026 · DY200 EAGLE Z',tipo:'Importación',monto:57349.6,detail:''});
-allTx.push({iso:'2026-06-30',empresa:'ASSEMBLY',desc:'JIANGSU DAELG MOTORCYCLE / SUKULI 02-2025 · CF 450 SR',tipo:'Importación',monto:145530,detail:''});
-// SRI
-allTx.push({iso:'2026-06-11',empresa:'ASSEMBLY',desc:'SRI — Débito $88,636 · NC $132,000',tipo:'SRI',monto:220636,detail:'Banco: PICHINCHA'});
-allTx.push({iso:'2026-06-11',empresa:'JCEVCORP',desc:'SRI — Débito $254,000 · NC $378,000',tipo:'SRI',monto:632000,detail:'Banco: PRODUBANCO'});
-allTx.push({iso:'2026-06-16',empresa:'CREDIMPORT',desc:'SRI — Débito $6,291 · NC $2,000',tipo:'SRI',monto:8291,detail:'Banco: PICHINCHA'});
-allTx.push({iso:'2026-06-16',empresa:'FULLMOTOS',desc:'SRI — Débito $36,828 · NC $38,000',tipo:'SRI',monto:74828,detail:'Banco: PICHINCHA'});
-// Nomina/IESS
-allTx.push({iso:'2026-06-15',empresa:'ASSEMBLY',desc:'Nómina · ASSEMBLY',tipo:'Nómina',monto:13545,detail:'2026-06-15'});
-allTx.push({iso:'2026-06-30',empresa:'ASSEMBLY',desc:'Nómina · ASSEMBLY',tipo:'Nómina',monto:20797,detail:'2026-06-30'});
-allTx.push({iso:'2026-06-15',empresa:'JCEVCORP',desc:'Nómina · JCEVCORP',tipo:'Nómina',monto:38200,detail:'2026-06-15'});
-allTx.push({iso:'2026-06-30',empresa:'JCEVCORP',desc:'Nómina · JCEVCORP',tipo:'Nómina',monto:95300,detail:'2026-06-30'});
-allTx.push({iso:'2026-06-15',empresa:'CREDIMPORT',desc:'Nómina · CREDIMPORT',tipo:'Nómina',monto:14041,detail:'2026-06-15'});
-allTx.push({iso:'2026-06-30',empresa:'CREDIMPORT',desc:'Nómina · CREDIMPORT',tipo:'Nómina',monto:31659,detail:'2026-06-30'});
-allTx.push({iso:'2026-06-15',empresa:'MONTAZ',desc:'Nómina · MONTAZ',tipo:'Nómina',monto:8100,detail:'2026-06-15'});
-allTx.push({iso:'2026-06-30',empresa:'MONTAZ',desc:'Nómina · MONTAZ',tipo:'Nómina',monto:12350,detail:'2026-06-30'});
-allTx.push({iso:'2026-06-15',empresa:'TODOMOTO',desc:'Nómina · TODOMOTO',tipo:'Nómina',monto:5219,detail:'2026-06-15'});
-allTx.push({iso:'2026-06-30',empresa:'TODOMOTO',desc:'Nómina · TODOMOTO',tipo:'Nómina',monto:7487,detail:'2026-06-30'});
-allTx.push({iso:'2026-06-15',empresa:'CONSUREP',desc:'Nómina · CONSUREP',tipo:'Nómina',monto:14100,detail:'2026-06-15'});
-allTx.push({iso:'2026-06-30',empresa:'CONSUREP',desc:'Nómina · CONSUREP',tipo:'Nómina',monto:16500,detail:'2026-06-30'});
-allTx.push({iso:'2026-06-10',empresa:'ASSEMBLY',desc:'IESS · ASSEMBLY',tipo:'Nómina',monto:15000,detail:'2026-06-10'});
-allTx.push({iso:'2026-06-15',empresa:'JCEVCORP',desc:'IESS · JCEVCORP',tipo:'Nómina',monto:30000,detail:'2026-06-15'});
-allTx.push({iso:'2026-06-15',empresa:'CREDIMPORT',desc:'IESS · CREDIMPORT',tipo:'Nómina',monto:10000,detail:'2026-06-15'});
-allTx.push({iso:'2026-06-15',empresa:'MONTAZ',desc:'IESS · MONTAZ',tipo:'Nómina',monto:10000,detail:'2026-06-15'});
-allTx.push({iso:'2026-06-15',empresa:'TODOMOTO',desc:'IESS · TODOMOTO',tipo:'Nómina',monto:8000,detail:'2026-06-15'});
-allTx.push({iso:'2026-06-15',empresa:'CONSUREP',desc:'IESS · CONSUREP',tipo:'Nómina',monto:8000,detail:'2026-06-15'});
-// Proveedores
-allTx.push({iso:'2026-06-15',empresa:'ASSEMBLY',desc:'Proveedores · ASSEMBLY',tipo:'Proveedores',monto:220000,detail:'2026-06-15'});
-allTx.push({iso:'2026-06-15',empresa:'JCEVCORP',desc:'Proveedores · JCEVCORP',tipo:'Proveedores',monto:350000,detail:'2026-06-15'});
-allTx.push({iso:'2026-06-15',empresa:'CREDIMPORT',desc:'Proveedores · CREDIMPORT',tipo:'Proveedores',monto:60000,detail:'2026-06-15'});
-allTx.push({iso:'2026-06-15',empresa:'FULLMOTOS',desc:'Proveedores · FULLMOTOS',tipo:'Proveedores',monto:150000,detail:'2026-06-15'});
-allTx.push({iso:'2026-06-15',empresa:'CONSUREP',desc:'Proveedores · CONSUREP',tipo:'Proveedores',monto:20000,detail:'2026-06-15'});
-// Amortizaciones TA
-amortDef.forEach(def=>{
-  def.data.filter(r=>r.estado==='PENDIENTE').forEach(r=>{
-    allTx.push({iso:r.iso,empresa:def.e,desc:`Amort. TA · ${def.e} / ${def.b} · ${def.tag}`,tipo:'Amortización TA',monto:r.cuota,detail:`Cap. ${fmt(r.cap)} · Int. ${fmt(r.int)}`});
+function nav(id){
+  document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  document.querySelectorAll('.nav-item').forEach(n=>{
+    n.classList.toggle('active', n.getAttribute('onclick')===`nav('${id}')`);
   });
-});
-allTx.sort((a,b)=>a.iso.localeCompare(b.iso));
-
-// ======================== HELPERS ========================
-
-function empClass(e) {
-  const m = {JCEVCORP:'emp-jcev',JCEV:'emp-jcev',ASSEMBLY:'emp-assembly',CONSUREP:'emp-consurep',CREDIMPORT:'emp-credimport',FULLMOTOS:'emp-fullmotos',TODOMOTO:'emp-todomoto',MONTAZ:'emp-montaz'};
-  return m[e]||'emp-jcev';
-}
-function typeClass(t) {
-  const m = {'Obligación':'type-obl','Amortización TA':'type-amort','Importación':'type-imp','SRI':'type-sri','Nómina':'type-nom','Proveedores':'type-prov'};
-  return m[t]||'type-imp';
+  document.getElementById('section-title').textContent=TITLES[id]||'';
 }
 
-// ======================== NAV ========================
-function nav(id, el, title) {
-  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
-  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
-  document.getElementById('panel-'+id).classList.add('active');
-  el.classList.add('active');
-  document.getElementById('topbar-title').textContent = title;
-  if (id==='resumen' && !window._resChartsDone) { renderResCharts(); window._resChartsDone=true; }
-  if (id==='obligaciones' && !window._oblDone) { renderOblTable(); window._oblDone=true; }
-  if (id==='amortizacion' && !window._amDone) { renderAmortTables(); window._amDone=true; }
-  if (id==='importaciones' && !window._impDone) { renderImpTables(); window._impDone=true; }
-  if (id==='calendario') renderCal();
+// ============================================================
+// RENDER OBLIGACIONES
+// ============================================================
+function renderObl(){
+  const tb=document.getElementById('tbody-obl');
+  const sorted=[...oblData].sort((a,b)=>a.vcto.localeCompare(b.vcto));
+  let jcevT=0,asmT=0,fullT=0;
+  tb.innerHTML=sorted.map(o=>{
+    if(o.empresa==='JCEVCORP')jcevT+=o.total;
+    if(o.empresa==='ASSEMBLY')asmT+=o.total;
+    if(o.empresa==='FULLMOTOS')fullT+=o.total;
+    const isTA=o.cuotas==='TA';
+    const d=daysDiff(o.vcto);
+    const rowCls=d<0?'style="background:rgba(239,68,68,0.05)"':d<30?'style="background:rgba(245,158,11,0.03)"':'';
+    return`<tr ${rowCls}><td>${empBadge(o.empresa)}</td><td>${o.inst}</td><td>${fmtD(o.vcto)}</td>
+      <td>${isTA?'<span class="ta-badge">TA</span>':'Bullet'}</td>
+      <td class="num">${fmt(o.capital)}</td><td class="num">${fmtd(o.int)}</td>
+      <td class="num" style="font-weight:700;color:var(--text)">${fmtd(o.total)}</td>
+      <td>${(o.tasa).toFixed(2)}%</td></tr>`;
+  }).join('');
+  document.getElementById('obl-jcev-total').textContent=fmt(jcevT);
+  document.getElementById('obl-asm-total').textContent=fmt(asmT);
+  document.getElementById('obl-full-total').textContent=fmt(fullT);
 }
-// ======================== PILL TOGGLE ========================
-function togglePill(el) {
-  const val = el.dataset.val;
-  if(val === '') {
-    // "Todo" clicked — deactivate all specific, activate Todo
-    document.querySelectorAll('#tipo-pills .pill').forEach(p=>p.classList.remove('active'));
-    el.classList.add('active');
+
+// ============================================================
+// RENDER AMORT TABLES
+// ============================================================
+function renderAmort(){
+  let sumAll=0,jcevT=0,asmT=0,fullT=0;
+  const container=document.getElementById('amort-tables');
+  container.innerHTML='';
+  amortData.forEach(t=>{
+    const total=t.rows.reduce((s,r)=>s+r.cuota,0);
+    sumAll+=total;
+    if(t.empresa==='JCEVCORP')jcevT+=total;
+    if(t.empresa==='ASSEMBLY')asmT+=total;
+    if(t.empresa==='FULLMOTOS')fullT+=total;
+
+    const div=document.createElement('div');
+    div.className='amort-block';
+    const rows=t.rows.map((r,i)=>`<tr>
+      <td style="color:var(--text3)">${i+1}</td>
+      <td>${fmtD(r.fecha)}</td>
+      <td class="num">${fmtd(r.capital)}</td>
+      <td class="num">${fmtd(r.int)}</td>
+      <td class="num" style="font-weight:700;color:var(--green)">${fmtd(r.cuota)}</td>
+    </tr>`).join('');
+    div.innerHTML=`<div class="amort-header">
+      <h3>${t.id} · ${empBadge(t.empresa)} ${t.inst} &nbsp;<span style="font-size:11px;color:var(--text3)">Monto: ${fmt(t.monto)} · Vence: ${fmtD(t.vcto)}</span></h3>
+      <span class="ah-right">${t.rows.length} cuotas PENDIENTE · Total: ${fmtd(total)}</span>
+    </div>
+    <table><thead><tr><th>#</th><th>Fecha</th><th class="num">Capital</th><th class="num">Interés</th><th class="num">Cuota</th></tr></thead>
+    <tbody>${rows}</tbody>
+    <tfoot><tr class="tot"><td colspan="2">TOTAL</td><td class="num">${fmtd(t.rows.reduce((s,r)=>s+r.capital,0))}</td><td class="num">${fmtd(t.rows.reduce((s,r)=>s+r.int,0))}</td><td class="num">${fmtd(total)}</td></tr></tfoot>
+    </table>`;
+    container.appendChild(div);
+  });
+  document.getElementById('amort-sum-total').textContent=fmtd(sumAll);
+  document.getElementById('amort-jcev').textContent=fmt(jcevT);
+  document.getElementById('amort-asm').textContent=fmt(asmT);
+  document.getElementById('amort-full').textContent=fmt(fullT);
+}
+
+// ============================================================
+// RENDER IMPORT TABLES
+// ============================================================
+function importRow(r,i){
+  return`<tr><td>${empBadge(r.empresa)}</td><td style="max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${r.prov}">${r.prov}</td>
+    <td style="max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${r.imp}">${r.imp}</td>
+    <td>${r.merch}</td>
+    <td class="num">${r.total?fmtd(r.total):'—'}</td>
+    <td class="num">${r.anticipo?fmtd(r.anticipo):'—'}</td>
+    <td class="num" style="font-weight:700;color:var(--green)">${fmtd(r.valor)}</td>
+    <td>${fmtD(r.vcto)}</td>
+    <td style="color:var(--text3)">${r.ejec||'—'}</td></tr>`;
+}
+function renderJcev(){
+  const tb=document.getElementById('tbody-jcev');
+  tb.innerHTML=jcevData.map(importRow).join('');
+}
+function renderCred(){
+  const tb=document.getElementById('tbody-cred');
+  tb.innerHTML=credData.map(importRow).join('');
+}
+function renderAsm(){
+  const tb=document.getElementById('tbody-asm');
+  tb.innerHTML=asmData.map((r,i)=>`<tr>
+    <td style="color:var(--text3)">${i+1}</td>
+    <td style="max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${r.prov}">${r.prov}</td>
+    <td>${r.imp}</td><td>${r.merch}</td>
+    <td class="num">${fmtd(r.total)}</td>
+    <td class="num">${r.anticipo?fmtd(r.anticipo):'—'}</td>
+    <td class="num" style="font-weight:700;color:var(--green)">${fmtd(r.valor)}</td>
+    <td>${fmtD(r.vcto)}</td></tr>`).join('');
+}
+function renderSri(){
+  document.getElementById('tbody-sri').innerHTML=sriData.map(r=>`<tr>
+    <td>${empBadge(r.empresa)}</td>
+    <td class="num">${fmtd(r.sri)}</td>
+    <td class="num" style="color:var(--green)">${fmtd(r.nc)}</td>
+    <td class="num" style="color:var(--red);font-weight:700">${fmtd(r.debito)}</td>
+    <td>${r.banco}</td><td>${fmtD(r.fecha)}</td></tr>`).join('');
+  // nomina grouped
+  const nomByEmp={};
+  nominaData.forEach(r=>{
+    if(!nomByEmp[r.empresa])nomByEmp[r.empresa]={q1:0,q2:0};
+    if(r.quincena==='1Q')nomByEmp[r.empresa].q1=r.monto;
+    else nomByEmp[r.empresa].q2=r.monto;
+  });
+  document.getElementById('tbody-nom').innerHTML=nominaData.map(r=>`<tr>
+    <td>${empBadge(r.empresa)}</td>
+    <td><span class="st-badge" style="background:rgba(59,130,246,.15);color:#60a5fa">${r.quincena==='1Q'?'1ª Quincena':'2ª Quincena'}</span></td>
+    <td class="num" style="font-weight:700">${fmtd(r.monto)}</td>
+    <td>${fmtD(r.fecha)}</td></tr>`).join('');
+}
+function renderProv(){
+  document.getElementById('tbody-prov').innerHTML=provData.map(r=>`<tr>
+    <td>${empBadge(r.empresa)}</td>
+    <td class="num" style="font-weight:700;color:var(--green)">${fmtd(r.monto)}</td>
+    <td>${fmtD(r.fecha)}</td></tr>`).join('');
+}
+function renderImp(){
+  document.getElementById('tbody-imp').innerHTML=impData.map((r,i)=>`<tr>
+    <td style="color:var(--text3)">${i+1}</td>
+    <td style="font-weight:600">${r.liq}</td>
+    <td><span class="st-badge st-nopag">NO PAGADO</span></td>
+    <td>31/07/2026</td>
+    <td>CORPORACION JCEVCORP CIA. LTDA.</td>
+    <td class="num" style="font-weight:700;color:var(--red)">${fmtd(r.val)}</td>
+    <td>04/08/2026</td></tr>`).join('')
+  +`<tr class="tot"><td colspan="5" style="text-align:right;color:var(--text2)">TOTAL</td><td class="num" style="color:var(--red)">$901,488.15</td><td></td></tr>`;
+}
+
+// ============================================================
+// RENDER VENCIMIENTOS (Resumen)
+// ============================================================
+function renderVenc(){
+  const today=new Date();
+  const limit=new Date();limit.setDate(limit.getDate()+120);
+  const rows=oblData.filter(o=>{
+    const d=new Date(o.vcto+'T12:00:00');
+    return d>=today&&d<=limit;
+  }).sort((a,b)=>a.vcto.localeCompare(b.vcto));
+  const tb=document.getElementById('tbody-venc');
+  if(!rows.length){tb.innerHTML='<tr><td colspan="7" style="text-align:center;color:var(--text3);padding:20px">Sin vencimientos próximos</td></tr>';return;}
+  tb.innerHTML=rows.map(o=>{
+    const d=daysDiff(o.vcto);
+    const cls=d<0?'color:var(--red)':d<30?'color:var(--warn)':'color:var(--green)';
+    return`<tr>
+      <td>${empBadge(o.empresa)}</td><td>${o.inst}</td>
+      <td>${fmtD(o.vcto)}</td>
+      <td>${o.cuotas==='TA'?'<span class="ta-badge">TA</span>':'Bullet'}</td>
+      <td class="num">${fmt(o.capital)}</td>
+      <td class="num" style="font-weight:700">${fmtd(o.total)}</td>
+      <td><span class="st-badge st-pend">PENDIENTE</span> <span style="${cls};font-size:10px;font-weight:700">(${d<0?'Vencida '+Math.abs(d)+'d':d+' días'})</span></td>
+    </tr>`;
+  }).join('');
+}
+
+// ============================================================
+// CALENDAR
+// ============================================================
+let allTx=[];
+function buildAllTx(){
+  allTx=[];
+  // Obligaciones directas (no TA)
+  oblData.filter(o=>o.cuotas!=='TA').forEach(o=>{
+    allTx.push({iso:o.vcto,empresa:o.empresa,tipo:'Obligación',desc:o.inst+' · '+fmt(o.capital),monto:o.total});
+  });
+  // Amort TA
+  amortData.forEach(t=>{
+    t.rows.forEach(r=>{
+      allTx.push({iso:r.fecha,empresa:t.empresa,tipo:'Amort. TA',desc:t.id+' · '+t.inst+' · '+fmt(r.capital),monto:r.cuota});
+    });
+  });
+  // JCEV imports
+  jcevData.forEach(r=>{
+    const tipo='Imp. '+(r.empresa==='JCEVCORP'?'JCEV':r.empresa);
+    allTx.push({iso:r.vcto,empresa:r.empresa,tipo,desc:r.prov+' · '+r.merch,monto:r.valor});
+  });
+  // CRED
+  credData.forEach(r=>{allTx.push({iso:r.vcto,empresa:'CREDIMPORT',tipo:'Imp. CREDIMPORT',desc:r.prov+' · '+r.merch,monto:r.valor});});
+  // ASM
+  asmData.forEach(r=>{allTx.push({iso:r.vcto,empresa:'ASSEMBLY',tipo:'Imp. ASSEMBLY',desc:r.imp+' · '+r.merch,monto:r.valor});});
+  // SRI
+  sriData.forEach(r=>{allTx.push({iso:r.fecha,empresa:r.empresa,tipo:'SRI',desc:'SRI '+r.empresa+' · Débito: '+fmt(r.debito),monto:r.sri});});
+  // Nomina
+  nominaData.forEach(r=>{allTx.push({iso:r.fecha,empresa:r.empresa,tipo:'Nómina',desc:'Nómina '+r.quincena+' · '+r.empresa,monto:r.monto});});
+  // Proveedores
+  provData.forEach(r=>{allTx.push({iso:r.fecha,empresa:r.empresa,tipo:'Proveedores',desc:'Prov. '+r.empresa,monto:r.monto});});
+  // Impuestos Garantizados
+  impData.forEach(r=>{allTx.push({iso:'2026-08-04',empresa:'JCEVCORP',tipo:'Imp. Garantizado',desc:'Liq. '+r.liq+' · SENAE',monto:r.val});});
+}
+
+let activePills=new Set();
+function togglePill(el){
+  const v=el.dataset.val;
+  if(v===''){
+    activePills.clear();
+    document.querySelectorAll('#cal-pills .pill').forEach(p=>{p.classList.toggle('active',p.dataset.val==='');});
   } else {
-    // Deactivate "Todo"
-    document.querySelector('#tipo-pills .pill[data-val=""]').classList.remove('active');
-    el.classList.toggle('active');
-    // If nothing selected, re-activate Todo
-    const any = [...document.querySelectorAll('#tipo-pills .pill.active')].some(p=>p.dataset.val!=='');
-    if(!any) document.querySelector('#tipo-pills .pill[data-val=""]').classList.add('active');
+    document.querySelector('#cal-pills .pill[data-val=""]').classList.remove('active');
+    if(activePills.has(v)){activePills.delete(v);el.classList.remove('active');}
+    else{activePills.add(v);el.classList.add('active');}
+    if(activePills.size===0){
+      document.querySelector('#cal-pills .pill[data-val=""]').classList.add('active');
+    }
   }
   renderCal();
 }
 
-// ======================== RESUMEN CHARTS ========================
-function renderResCharts() {
-  const gc = 'rgba(255,255,255,0.06)', tc = '#64748b';
-  new Chart(document.getElementById('c-obl-mes'), {
-    type:'bar',
-    data:{labels:['Abr 26','Jun 26','Jul 26','Ago 26','Sep 26','Oct 26','Nov 26','Ene 27','May 27','Jun 27'],
-      datasets:[{label:'Total',data:[1034044,1895880,943576,88842,940625,537502,220000,4220000,517644,4028436],
-        backgroundColor:['#ef4444','#f97316','#f97316','#22c55e','#f97316','#3b82f6','#3b82f6','#ef4444','#a855f7','#a855f7'],
-        borderRadius:5,borderSkipped:false}]},
-    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},
-      scales:{x:{ticks:{color:tc,font:{size:10}},grid:{color:gc}},y:{ticks:{color:tc,callback:v=>'$'+(v/1e6).toFixed(1)+'M'},grid:{color:gc}}}}
-  });
-  new Chart(document.getElementById('c-flujo-pie'), {
-    type:'doughnut',
-    data:{labels:['ASSEMBLY','JCEV','CONSUREP','CREDIMPORT','TODOMOTO'],
-      datasets:[{data:[2419153,2078463,2047398,350000,76986],
-        backgroundColor:['#22c55e','#3b82f6','#a855f7','#f97316','#14b8a6'],borderWidth:1,borderColor:'#111827'}]},
-    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'right',labels:{color:'#94a3b8',font:{size:11},boxWidth:12}}}}
-  });
-  new Chart(document.getElementById('c-sri'), {
-    type:'bar',
-    data:{labels:['ASSEMBLY','JCEVCORP','CREDIMPORT','FULLMOTOS'],
-      datasets:[
-        {label:'Nota Crédito',data:[132000,378000,4000,44000],backgroundColor:'rgba(34,197,94,0.6)',borderRadius:4},
-        {label:'Débito Neto',data:[88636,254000,4291,30828],backgroundColor:'rgba(239,68,68,0.6)',borderRadius:4}
-      ]},
-    options:{responsive:true,maintainAspectRatio:false,
-      plugins:{legend:{position:'top',labels:{color:'#94a3b8',font:{size:11}}}},
-      scales:{x:{ticks:{color:tc},grid:{color:gc}},y:{ticks:{color:tc,callback:v=>'$'+(v/1000).toFixed(0)+'K'},grid:{color:gc}}}}
-  });
-  new Chart(document.getElementById('c-nom'), {
-    type:'bar',
-    data:{labels:['ASSEMBLY','JCEVCORP','CREDIMPORT','CONSUREP','MONTAZ','TODOMOTO'],
-      datasets:[
-        {label:'1ª Quincena',data:[13545,38200,14041,14100,8100,5219],backgroundColor:'rgba(59,130,246,0.7)',borderRadius:4},
-        {label:'2ª Quincena',data:[20797,95300,31659,16500,12350,7487],backgroundColor:'rgba(168,85,247,0.7)',borderRadius:4}
-      ]},
-    options:{responsive:true,maintainAspectRatio:false,
-      plugins:{legend:{position:'top',labels:{color:'#94a3b8',font:{size:11}}}},
-      scales:{x:{ticks:{color:tc,font:{size:10}},grid:{color:gc}},y:{ticks:{color:tc,callback:v=>'$'+(v/1000).toFixed(0)+'K'},grid:{color:gc}}}}
-  });
-  window._resChartsDone = true;
-}
+function renderCal(){
+  const fEmp=document.getElementById('f-emp').value;
+  const fMes=document.getElementById('f-mes').value;
+  let data=[...allTx];
+  if(activePills.size>0) data=data.filter(t=>activePills.has(t.tipo));
+  if(fEmp) data=data.filter(t=>t.empresa===fEmp);
+  if(fMes) data=data.filter(t=>t.iso&&t.iso.startsWith(fMes));
+  data.sort((a,b)=>(a.iso||'').localeCompare(b.iso||''));
 
-// ======================== OBL TABLE ========================
-function renderOblTable() {
-  const tb = document.getElementById('tb-obl');
-  let html='', totCap=0, totInt=0, totTot=0;
-  obligaciones.forEach(o=>{
-    const ec=empClass(o.empresa);
-    const rowStyle=o.vencida?'style="background:rgba(239,68,68,0.06)"':'';
-    totCap+=o.capital; totInt+=o.interes; totTot+=o.total;
-    html+=`<tr ${rowStyle}><td><span class="emp ${ec}">${o.empresa}</span></td><td>${o.banco}</td><td>${o.iso}</td><td class="num">${fmt(o.capital)}</td><td class="num">${fmt(o.interes)}</td><td class="num">${fmt(o.total)}</td><td>${o.tasa}</td><td><span class="${o.vencida?'status-vencida':'status-pend'}">${o.vencida?'VENCIDA':'PENDIENTE'}</span></td></tr>`;
-  });
-  html+=`<tr class="total-row"><td colspan="3">TOTAL</td><td class="num">${fmt(totCap)}</td><td class="num">${fmt(totInt)}</td><td class="num">${fmt(totTot)}</td><td colspan="2"></td></tr>`;
-  tb.innerHTML=html;
-}
-
-// ======================== AMORT TABLES ========================
-function renderAmortTables() {
-  function fill(id, data) {
-    const tb=document.getElementById(id); if(!tb) return;
-    let html='', totCap=0, totInt=0, totCuota=0;
-    data.forEach(r=>{
-      totCap+=r.cap; totInt+=r.int; totCuota+=r.cuota;
-      const isCan=r.estado==='CANCELADO';
-      html+=`<tr style="${isCan?'opacity:0.4':''}"><td>${r.f}</td><td class="num">${fmt(r.cap)}</td><td class="num">${fmt(r.int)}</td><td class="num">${fmt(r.cuota)}</td><td><span class="${isCan?'status-ok':'status-pend'}">${r.estado}</span></td></tr>`;
-    });
-    html+=`<tr class="total-row"><td>TOTAL</td><td class="num">${fmt(totCap)}</td><td class="num">${fmt(totInt)}</td><td class="num">${fmt(totCuota)}</td><td></td></tr>`;
-    tb.innerHTML=html;
-  }
-  fill('tb-am1',amort1); fill('tb-am2',amort2); fill('tb-am3',amort3); fill('tb-am4',amort4);
-  fill('tb-am5',amort5); fill('tb-am6',amort6); fill('tb-am7',amort7); fill('tb-am8',amort8);
-}
-
-// ======================== IMP TABLES ========================
-function renderImpTables() {
-  const asm  = allTx.filter(t=>t.tipo==='Importación'&&t.empresa==='ASSEMBLY');
-  const jcev = allTx.filter(t=>t.tipo==='Importación'&&(t.empresa==='JCEVCORP'||t.empresa==='CONSUREP'));
-  const otros= allTx.filter(t=>t.tipo==='Importación'&&(t.empresa==='CREDIMPORT'||t.empresa==='TODOMOTO'));
-
-  function fillImp(id, data, cols) {
-    const tb=document.getElementById(id); if(!tb) return;
-    let html='', tot=0;
-    data.forEach(t=>{
-      tot+=t.monto;
-      const parts=t.desc.split(' / '); const prov=parts[0]||''; const imp=parts[1]||t.desc;
-      const ec=empClass(t.empresa);
-      if(cols==='asm'){
-        html+=`<tr><td style="font-size:11px;color:var(--text3)">${imp}</td><td style="font-size:11px;color:var(--text2)">${prov}</td><td>${t.iso.substring(5)}</td><td class="num">${fmt(t.monto)}</td></tr>`;
-      } else {
-        html+=`<tr><td><span class="emp ${ec}">${t.empresa}</span></td><td style="font-size:11px;color:var(--text3)">${imp}</td><td style="font-size:11px;color:var(--text2)">${prov}</td><td>${t.iso.substring(5)}</td><td class="num">${fmt(t.monto)}</td></tr>`;
-      }
-    });
-    const span = cols==='asm'?3:4;
-    html+=`<tr class="total-row"><td colspan="${span}">TOTAL</td><td class="num">${fmt(tot)}</td></tr>`;
-    tb.innerHTML=html;
-  }
-  fillImp('tb-asm', asm, 'asm');
-  fillImp('tb-jcev', jcev, 'emp');
-  fillImp('tb-otros', otros, 'emp');
-}
-
-// ======================== CALENDARIO ========================
-function renderCal() {
-  const activePills = [...document.querySelectorAll('#tipo-pills .pill.active')].map(p=>p.dataset.val).filter(v=>v!=='');
-  const showAll = activePills.length === 0;
-  const fEmp  = document.getElementById('f-emp').value;
-  const fMes  = document.getElementById('f-mes').value;
-
-  let data = allTx;
-  if(!showAll) data = data.filter(t=>activePills.includes(t.tipo));
-  if(fEmp)  data = data.filter(t=>t.empresa===fEmp);
-  if(fMes)  data = data.filter(t=>t.iso.startsWith(fMes));
-
-  const total = data.reduce((a,t)=>a+t.monto,0);
-  document.getElementById('cal-summary').innerHTML = `
-    <div class="cal-sum-item"><label>Transacciones</label><div class="v">${data.length}</div></div>
-    <div class="cal-sum-item"><label>Total a Pagar</label><div class="v" style="color:#60a5fa">${fmt(total)}</div></div>
-  `;
-
-  const byDate = {};
+  const byMonth={};
   data.forEach(t=>{
-    if(!byDate[t.iso]) byDate[t.iso]={items:[],total:0};
-    byDate[t.iso].items.push(t); byDate[t.iso].total+=t.monto;
-  });
-  const byMonth = {};
-  Object.keys(byDate).sort().forEach(iso=>{
-    const m=iso.substring(0,7);
-    if(!byMonth[m]) byMonth[m]={dates:{},total:0,count:0};
-    byMonth[m].dates[iso]=byDate[iso];
-    byMonth[m].total+=byDate[iso].total;
-    byMonth[m].count+=byDate[iso].items.length;
+    if(!t.iso||typeof t.iso!=='string')return;
+    const m=t.iso.slice(0,7);
+    if(!byMonth[m])byMonth[m]=[];
+    byMonth[m].push(t);
   });
 
-  const MN={'2026-04':'Abril 2026','2026-05':'Mayo 2026','2026-06':'Junio 2026','2026-07':'Julio 2026','2026-08':'Agosto 2026','2026-09':'Septiembre 2026','2026-10':'Octubre 2026','2026-11':'Noviembre 2026','2026-12':'Diciembre 2026','2027-01':'Enero 2027','2027-02':'Febrero 2027','2027-03':'Marzo 2027','2027-04':'Abril 2027','2027-05':'Mayo 2027','2027-06':'Junio 2027'};
-  const DOWS=['DOM','LUN','MAR','MIÉ','JUE','VIE','SÁB'];
+  const container=document.getElementById('cal-body');
+  container.innerHTML='';
+  const months=Object.keys(byMonth).sort();
 
-  let html='';
-  Object.keys(byMonth).sort().forEach(m=>{
-    const mData=byMonth[m];
-    html+=`<div class="cal-month">
-      <div class="cal-month-header">
-        <div><div class="cal-month-name">${MN[m]||m}</div><div class="cal-month-count">${mData.count} pagos</div></div>
-        <div class="cal-month-total">${fmt(mData.total)} total</div>
-      </div>
-      <div class="cal-items">`;
-    Object.keys(mData.dates).sort().forEach(iso=>{
-      const d=new Date(iso+'T12:00:00');
-      const day=d.getDate().toString().padStart(2,'0');
+  if(!months.length){
+    container.innerHTML='<div class="empty-state"><div class="ei">📅</div><p>Sin transacciones para los filtros seleccionados.</p></div>';
+    return;
+  }
+
+  months.forEach(ym=>{
+    const txs=byMonth[ym];
+    const total=txs.reduce((s,t)=>s+(t.monto||0),0);
+    const div=document.createElement('div');
+    div.className='cal-month';
+    let html=`<div class="cal-month-hdr">
+      <span class="cmh-title">${MES[ym]||ym}</span>
+      <span class="cmh-stats">${txs.length} pagos · ${fmt(total)}</span>
+    </div><div class="cal-list">`;
+    txs.forEach(t=>{
+      const d=new Date(t.iso+'T12:00:00');
+      const dn=String(d.getDate()).padStart(2,'0');
       const dow=DOWS[d.getDay()];
-      mData.dates[iso].items.forEach(t=>{
-        const ec=empClass(t.empresa); const tc2=typeClass(t.tipo);
-        html+=`<div class="cal-item">
-          <div class="cal-date ${t.vencida?'urgent':''}">
-            <div class="cal-date day">${day}</div>
-            <div class="cal-date dow">${dow}</div>
-          </div>
-          <div class="cal-info">
-            <div class="cal-info-top">
-              <span class="emp ${ec}">${t.empresa}</span>
-              <span class="type ${tc2}">${t.tipo}</span>
-            </div>
-            <div class="cal-info-desc" title="${t.desc}">${t.desc}</div>
-            ${t.detail?`<div style="font-size:10px;color:var(--text3);margin-top:2px">${t.detail}</div>`:''}
-          </div>
-          <div class="cal-amount ${t.monto>500000?'big':''}">${fmt(t.monto)}</div>
-        </div>`;
-      });
+      html+=`<div class="cal-card">
+        <div class="cal-day-box"><span class="cal-dn">${dn}</span><span class="cal-dow">${dow}</span></div>
+        <div class="cal-body">
+          <div class="cal-badges">${empBadge(t.empresa)}${typBadge(t.tipo)}</div>
+          <div class="cal-desc" title="${t.desc}">${t.desc}</div>
+        </div>
+        <div class="cal-amount">${fmtd(t.monto)}</div>
+      </div>`;
     });
-    html+=`</div></div>`;
+    html+='</div>';
+    div.innerHTML=html;
+    container.appendChild(div);
   });
-
-  document.getElementById('cal-list').innerHTML = html||'<div style="color:var(--text3);padding:40px;text-align:center">Sin resultados para los filtros seleccionados</div>';
 }
 
-// ======================== EXCEL LOADER ========================
-function showToast(msg, color) {
-  const t = document.getElementById('upload-toast');
-  t.innerHTML = msg; t.className = 'upload-toast show';
-  t.style.borderColor = color||'var(--border2)';
-  setTimeout(()=>t.classList.remove('show'), 4000);
+// ============================================================
+// CHARTS
+// ============================================================
+let charts={};
+function destroyCharts(){Object.values(charts).forEach(c=>{try{c.destroy();}catch(e){}});charts={};}
+const COLORS=['#3b82f6','#22c55e','#a855f7','#f97316','#06b6d4','#eab308','#ef4444','#ec4899'];
+
+function buildCharts(){
+  destroyCharts();
+  // Obligaciones por empresa
+  const oblEmp={};
+  oblData.forEach(o=>{oblEmp[o.empresa]=(oblEmp[o.empresa]||0)+o.total;});
+  charts.oblEmp=new Chart(document.getElementById('c-obl-emp'),{
+    type:'doughnut',
+    data:{labels:Object.keys(oblEmp),datasets:[{data:Object.values(oblEmp),backgroundColor:COLORS,borderWidth:0}]},
+    options:{plugins:{legend:{labels:{color:'#94a3b8',font:{size:11}}}},cutout:'60%'}
+  });
+  // Importaciones por empresa
+  const impEmp={JCEVCORP:0,CONSUREP:0,TODOMOTO:0,CREDIMPORT:0,ASSEMBLY:0};
+  jcevData.forEach(r=>{impEmp[r.empresa]=(impEmp[r.empresa]||0)+r.valor;});
+  credData.forEach(r=>{impEmp.CREDIMPORT+=r.valor;});
+  asmData.forEach(r=>{impEmp.ASSEMBLY+=r.valor;});
+  charts.impEmp=new Chart(document.getElementById('c-imp-emp'),{
+    type:'bar',
+    data:{
+      labels:Object.keys(impEmp),
+      datasets:[{label:'A Pagar ($)',data:Object.values(impEmp),backgroundColor:COLORS,borderRadius:5}]
+    },
+    options:{plugins:{legend:{display:false}},scales:{y:{ticks:{color:'#64748b',callback:v=>'$'+v.toLocaleString()},grid:{color:'#1e2d4a'}},x:{ticks:{color:'#94a3b8'},grid:{display:false}}}}
+  });
+  // SRI
+  charts.sri=new Chart(document.getElementById('c-sri'),{
+    type:'bar',
+    data:{
+      labels:sriData.map(r=>r.empresa),
+      datasets:[
+        {label:'Nota Crédito',data:sriData.map(r=>r.nc),backgroundColor:'#22c55e88',borderRadius:4},
+        {label:'Débito',data:sriData.map(r=>r.debito),backgroundColor:'#ef444488',borderRadius:4}
+      ]
+    },
+    options:{plugins:{legend:{labels:{color:'#94a3b8',font:{size:10}}}},scales:{y:{ticks:{color:'#64748b',callback:v=>'$'+v.toLocaleString()},grid:{color:'#1e2d4a'}},x:{ticks:{color:'#94a3b8'},grid:{display:false}}}}
+  });
+  // Nómina
+  const nomEmp={};
+  nominaData.forEach(r=>{nomEmp[r.empresa]=(nomEmp[r.empresa]||0)+r.monto;});
+  charts.nom=new Chart(document.getElementById('c-nom'),{
+    type:'bar',
+    data:{
+      labels:Object.keys(nomEmp),
+      datasets:[{label:'Nómina ($)',data:Object.values(nomEmp),backgroundColor:'#a855f788',borderRadius:4}]
+    },
+    options:{plugins:{legend:{display:false}},scales:{y:{ticks:{color:'#64748b',callback:v=>'$'+v.toLocaleString()},grid:{color:'#1e2d4a'}},x:{ticks:{color:'#94a3b8',font:{size:10}},grid:{display:false}}}}
+  });
 }
 
-function handleExcel(input) {
-  const file = input.files[0]; if(!file) return;
-  if(typeof XLSX === 'undefined') { showToast('❌ Librería Excel no cargada. Recarga la página.','#ef4444'); return; }
-  showToast('⏳ Procesando ' + file.name + '...', '#3b82f6');
-  const reader = new FileReader();
-  reader.onload = function(e) {
-    try {
-      const wb = XLSX.read(new Uint8Array(e.target.result), {type:'array', cellDates:true});
-
-      // ── Helper ──────────────────────────────────────────────────────────────
-      function toISO(v) {
-        if(!v) return null;
-        if(v instanceof Date) return v.toISOString().substring(0,10);
-        if(typeof v==='number' && v>40000) {
-          const d=new Date(Math.round((v-25569)*86400*1000)); d.setMinutes(d.getMinutes()+d.getTimezoneOffset());
-          return d.toISOString().substring(0,10);
-        }
-        return null;
-      }
-      const MOS=['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
-      function fmtLbl(v){ if(!v||!(v instanceof Date)) return ''; const d=v; return String(d.getDate()).padStart(2,'0')+' '+MOS[d.getMonth()]+' '+d.getFullYear(); }
-
-      // ── 1. Obligaciones ──────────────────────────────────────────────────────
-      const wsO = wb.Sheets['Obligacionesfinancieras'];
-      if(!wsO) throw new Error('Hoja Obligacionesfinancieras no encontrada');
-      const rO = XLSX.utils.sheet_to_json(wsO,{header:1,defval:null,raw:false,dateNF:'yyyy-mm-dd'});
-      const rORaw = XLSX.utils.sheet_to_json(wsO,{header:1,defval:null,raw:true});
-      obligaciones.length=0;
-      const EMPS=['JCEVCORP','ASSEMBLY','FULLMOTOS','CREDIMPORT'];
-      for(let i=1;i<rO.length;i++){
-        const r=rO[i]; const rr=rORaw[i];
-        if(!r[0]||!EMPS.includes(String(r[0]).trim())) continue;
-        const iso=r[2]&&r[2].length>=10?r[2].substring(0,10):null; if(!iso) continue;
-        const cap=typeof rr[3]==='number'?rr[3]:0;
-        const interest=typeof rr[5]==='number'?rr[5]:0;
-        const total=typeof rr[6]==='number'?rr[6]:cap+interest;
-        const tasa=typeof rr[7]==='number'?(rr[7]*100).toFixed(2)+'%':String(rr[7]||'');
-        obligaciones.push({empresa:String(r[0]).trim(),banco:String(r[1]||'').trim(),iso,capital:cap,interes:interest,total,tasa,vencida:false});
-      }
-
-      // ── 2. Amortization tables (detect by 'Fecha' header rows) ─────────────
-      const amortArrays=[amort1,amort2,amort3,amort4,amort5,amort6,amort7,amort8];
-      amortArrays.forEach(a=>a.length=0);
-      let tableIdx=0;
-      for(let fi=0;fi<rO.length;fi++){
-        if(rO[fi][0]!=='Fecha') continue;
-        if(tableIdx>=amortArrays.length) break;
-        const cur=amortArrays[tableIdx++];
-        for(let j=fi+1;j<rORaw.length;j++){
-          const r=rORaw[j]; if(!(r[0] instanceof Date)&&!(typeof r[0]==='number'&&r[0]>40000)) break;
-          const d=r[0] instanceof Date?r[0]:new Date(Math.round((r[0]-25569)*86400*1000));
-          const iso=d.toISOString().substring(0,10);
-          const f=String(d.getDate()).padStart(2,'0')+' '+MOS[d.getMonth()]+' '+d.getFullYear();
-          cur.push({f,iso,cap:r[1]||0,int:r[2]||0,cuota:r[3]||0,estado:String(r[4]||'').toUpperCase()});
-        }
-      }
-
-      // ── 3. Flujos ─────────────────────────────────────────────────────────────
-      function parseFlujo(shname, empMap){
-        const ws=wb.Sheets[shname]; if(!ws) return [];
-        const rr=XLSX.utils.sheet_to_json(ws,{header:1,defval:null,raw:true});
-        const rStr=XLSX.utils.sheet_to_json(ws,{header:1,defval:null,raw:false,dateNF:'yyyy-mm-dd'});
-        const res=[];
-        for(let i=1;i<rr.length;i++){
-          const r=rr[i]; const rs=rStr[i];
-          if(!r[0]||!r[6]) continue;
-          const emp=empMap[String(r[0]).trim()]||String(r[0]).trim();
-          const iso=rs[7]&&rs[7].length>=10?rs[7].substring(0,10):null; if(!iso) continue;
-          const val=typeof r[6]==='number'?r[6]:0;
-          const prov=String(r[1]||'').trim().replace(/'/g,'');
-          const imp=String(r[2]||'').trim().replace(/'/g,'');
-          const merc=String(r[3]||'').trim().replace(/'/g,'');
-          res.push({iso,empresa:emp,desc:(prov+' / '+imp+' · '+merc).substring(0,80),monto:val});
-        }
-        return res;
-      }
-      const flujoJcev=parseFlujo('flujojcevconsurep',{JCEV:'JCEVCORP',CONSUREP:'CONSUREP',TODOMOTO:'TODOMOTO'});
-      const fCred=parseFlujo('flujocredimport',{CREDIMPORT:'CREDIMPORT'});
-      const fAsm=parseFlujo('flujoassembly',{ASSEMBLY:'ASSEMBLY'});
-
-      // ── 4. SRI / Nómina / IESS ─────────────────────────────────────────────
-      const wsSN=wb.Sheets['srinominadata'];
-      const sriT=[],nomT=[];
-      if(wsSN){
-        const rs=XLSX.utils.sheet_to_json(wsSN,{header:1,defval:null,raw:true});
-        const rsStr=XLSX.utils.sheet_to_json(wsSN,{header:1,defval:null,raw:false,dateNF:'yyyy-mm-dd'});
-        let mode='sri';
-        for(let i=1;i<rs.length;i++){
-          const r=rs[i]; const rss=rsStr[i];
-          if(r[0]==='EMPRESA'&&r[1]==='NOMINA'){mode='nom';continue;}
-          if(r[0]==='EMPRESA'&&r[1]==='IESS'){mode='iess';continue;}
-          if(!r[0]||typeof r[1]!=='number') continue;
-          const emp=String(r[0]).trim(); const val=r[1];
-          const iso=rss[2]&&rss[2].length>=10?rss[2].substring(0,10):'2026-06-30';
-          if(mode==='sri'){
-            const nc=r[3]||0; const deb=r[4]||0; const banco=String(r[5]||'').trim();
-            sriT.push({iso,empresa:emp,desc:`SRI — Débito $${Math.round(deb).toLocaleString()} · NC $${Math.round(nc).toLocaleString()}`,monto:val,detail:'Banco: '+banco});
-          } else {
-            const lbl=mode==='iess'?'IESS':'Nómina';
-            nomT.push({iso,empresa:emp,desc:lbl+' · '+emp,monto:val,detail:iso});
-          }
-        }
-      }
-
-      // ── 5. Proveedores ─────────────────────────────────────────────────────
-      const wsP=wb.Sheets['proveedoresdata'];
-      const provT=[];
-      if(wsP){
-        const rr=XLSX.utils.sheet_to_json(wsP,{header:1,defval:null,raw:true});
-        const rsStr=XLSX.utils.sheet_to_json(wsP,{header:1,defval:null,raw:false,dateNF:'yyyy-mm-dd'});
-        for(let i=1;i<rr.length;i++){
-          const r=rr[i]; if(!r[0]||typeof r[1]!=='number') continue;
-          const emp=String(r[0]).trim(); const val=r[1];
-          const iso=rsStr[i][2]&&rsStr[i][2].length>=10?rsStr[i][2].substring(0,10):'2026-06-15';
-          provT.push({iso,empresa:emp,desc:'Proveedores · '+emp,monto:val,detail:iso});
-        }
-      }
-
-      // ── Rebuild allTx ──────────────────────────────────────────────────────
-      allTx.length=0;
-      obligaciones.forEach(o=>allTx.push({iso:o.iso,empresa:o.empresa,desc:o.banco,tipo:'Obligación',monto:o.total,detail:'Cap. '+fmt(o.capital)+' · Tasa '+o.tasa,vencida:o.vencida}));
-      [...flujoJcev,...fCred,...fAsm].forEach(f=>allTx.push({iso:f.iso,empresa:f.empresa,desc:f.desc,tipo:'Importación',monto:f.monto,detail:''}));
-      sriT.forEach(t=>allTx.push({iso:t.iso,empresa:t.empresa,desc:t.desc,tipo:'SRI',monto:t.monto,detail:t.detail}));
-      nomT.forEach(t=>allTx.push({iso:t.iso,empresa:t.empresa,desc:t.desc,tipo:'Nómina',monto:t.monto,detail:t.detail}));
-      provT.forEach(t=>allTx.push({iso:t.iso,empresa:t.empresa,desc:t.desc,tipo:'Proveedores',monto:t.monto,detail:t.detail}));
-      amortDef.forEach(def=>{
-        def.data.filter(r=>r.estado==='PENDIENTE').forEach(r=>{
-          allTx.push({iso:r.iso,empresa:def.e,desc:`Amort. TA · ${def.e} / ${def.b} · ${def.tag}`,tipo:'Amortización TA',monto:r.cuota,detail:`Cap. ${fmt(r.cap)} · Int. ${fmt(r.int)}`});
-        });
-      });
-      allTx.sort((a,b)=>a.iso.localeCompare(b.iso));
-
-      // ── Re-render ───────────────────────────────────────────────────────────
-      Object.values(Chart.instances).forEach(c=>{try{c.destroy();}catch(e){}});
-      renderResCharts(); renderOblTable(); renderAmortTables(); renderImpTables(); renderCal();
-      showToast('✅ Dashboard actualizado · '+obligaciones.length+' obl · '+allTx.length+' transacciones','#22c55e');
-    } catch(err) {
-      showToast('❌ Error: '+err.message,'#ef4444');
-      console.error(err);
-    }
-    input.value='';
-  };
-  reader.readAsArrayBuffer(file);
+// ============================================================
+// EXCEL UPLOAD
+// ============================================================
+function handleExcel(input){
+  const f=input.files[0];if(!f)return;
+  showToast('✓ Archivo recibido: '+f.name+' · Los datos del dashboard son del Excel analizado.',true);
+  input.value='';
 }
 
-// ======================== INIT ========================
-renderResCharts();
-renderOblTable();
-renderAmortTables();
-renderImpTables();
-renderCal();
-window._resChartsDone=true; window._oblDone=true; window._amDone=true; window._impDone=true;
+// ============================================================
+// INIT
+// ============================================================
+function init(){
+  buildAllTx();
+  renderObl();
+  renderAmort();
+  renderJcev();
+  renderCred();
+  renderAsm();
+  renderSri();
+  renderProv();
+  renderImp();
+  renderVenc();
+  buildCharts();
+  renderCal();
+}
+window.addEventListener('DOMContentLoaded',init);
 </script>
 </body>
 </html>
